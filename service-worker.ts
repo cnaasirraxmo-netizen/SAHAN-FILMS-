@@ -87,54 +87,63 @@ sw.addEventListener('activate', (event: ExtendableEvent) => {
   return sw.clients.claim();
 });
 
-// Fetch event: Serve from cache or network
+// Fetch event: Serve from cache or network, with offline fallback for navigation
 sw.addEventListener('fetch', (event: FetchEvent) => {
-  const url = new URL(event.request.url);
+    const { request } = event;
+    const url = new URL(request.url);
 
-  // Strategy 1: Stale-While-Revalidate for images from picsum.photos
-  if (url.hostname === 'picsum.photos') {
+    // Strategy for navigation requests (handle SPA routing and offline)
+    if (request.mode === 'navigate') {
+        event.respondWith(
+            (async () => {
+                try {
+                    // Try the network first
+                    const networkResponse = await fetch(request);
+                    return networkResponse;
+                } catch (error) {
+                    // If the network fails, serve the cached index.html for any SPA route
+                    console.log('Fetch failed for navigation; returning cached app shell.', error);
+                    const cache = await caches.open(STATIC_CACHE_NAME);
+                    // The main entry point for the SPA
+                    const cachedResponse = await cache.match('/index.html');
+                    return cachedResponse!;
+                }
+            })()
+        );
+        return;
+    }
+
+    // Strategy for non-navigation requests (images, APIs, etc.)
+    // Stale-While-Revalidate for images
+    if (url.hostname === 'picsum.photos') {
+        event.respondWith(
+            caches.open(IMAGE_CACHE_NAME).then(async (cache) => {
+                const cachedResponse = await cache.match(request);
+                const fetchedResponsePromise = fetch(request).then((networkResponse) => {
+                    cache.put(request, networkResponse.clone());
+                    return networkResponse;
+                });
+                return cachedResponse || fetchedResponsePromise;
+            })
+        );
+        return;
+    }
+
+    // Cache-first for other assets (app shell, CDNs), with network fallback
     event.respondWith(
-      caches.open(IMAGE_CACHE_NAME).then(async (cache) => {
-        const cachedResponse = await cache.match(event.request);
-        const fetchedResponsePromise = fetch(event.request).then((networkResponse) => {
-          cache.put(event.request, networkResponse.clone());
-          return networkResponse;
-        });
-        return cachedResponse || fetchedResponsePromise;
-      })
+        caches.match(request).then((response) => {
+            return response || fetch(request).then(fetchRes => {
+                // Cache the new resource in the dynamic cache
+                return caches.open(DYNAMIC_CACHE_NAME).then(cache => {
+                    // Don't cache Firestore requests as it has its own offline persistence
+                    if (!url.href.includes('firestore.googleapis.com')) {
+                       cache.put(request, fetchRes.clone());
+                    }
+                    return fetchRes;
+                });
+            });
+        })
     );
-  }
-  // Strategy 2: Cache-First for local assets (App Shell)
-  else if (APP_SHELL_URLS.includes(url.pathname) || url.origin === sw.location.origin) {
-    event.respondWith(
-      caches.match(event.request).then((response) => {
-        return response || fetch(event.request);
-      })
-    );
-  }
-  // Strategy 3: Stale-While-Revalidate for external CDN assets and Firebase
-  else {
-    event.respondWith(
-      caches.open(DYNAMIC_CACHE_NAME).then(async (cache) => {
-        try {
-            const fetchedResponse = await fetch(event.request);
-            // Don't cache firestore requests as they have their own offline mechanism
-            if (!url.href.includes('firestore.googleapis.com')) {
-                cache.put(event.request, fetchedResponse.clone());
-            }
-            return fetchedResponse;
-        } catch (error) {
-            const cachedResponse = await cache.match(event.request);
-            if (cachedResponse) {
-                return cachedResponse;
-            }
-            // If it's not in the cache and the network fails, the request will fail,
-            // which is the expected behavior for dynamic content offline.
-            throw error;
-        }
-      })
-    );
-  }
 });
 
 
