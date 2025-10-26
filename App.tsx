@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useState, useEffect, createContext } from 'react';
 import Header from './components/Header';
 import CategoryNav from './components/CategoryNav';
@@ -22,8 +24,9 @@ import VideoPlayer from './components/VideoPlayer';
 import CastPlayer from './components/CastPlayer';
 import CategoryPage from './components/CategoryPage';
 import FilmsPage from './components/FilmsPage';
-import SubscriptionsPage from './components/SubscriptionsPage';
-import AdminPage from './components/AdminPage'; // Import the new Admin Page
+import Watchlist from './components/Watchlist';
+import AdminPage from './components/AdminPage';
+import SplashScreen from './components/SplashScreen'; // Import the new Splash Screen
 // FIX: Corrected typo from CAROUSESECREL_ITEMS to CAROUSEL_ITEMS.
 import { CAROUSEL_ITEMS, PRIME_MOVIES, PRIME_ORIGINALS, CONTINUE_WATCHING, PROFILES, CATEGORIES } from './constants';
 import { Movie, Profile, DownloadQuality } from './types';
@@ -143,6 +146,7 @@ const DeviceSync: React.FC<{ profile: Profile; onBack: () => void; }> = ({ profi
 
 
 const App: React.FC = () => {
+  const [showSplash, setShowSplash] = useState(false);
   const [appView, setAppView] = useState<AppView>('user');
   const [activeTab, setActiveTab] = useState('Home');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -155,10 +159,23 @@ const App: React.FC = () => {
   const [downloadedMovies, setDownloadedMovies] = useState<Movie[]>([]);
   const [downloadQuality, setDownloadQuality] = useState<DownloadQuality>('Better');
   const [autoDelete, setAutoDelete] = useState<boolean>(false);
+  const [watchlist, setWatchlist] = useState<number[]>([]);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [isCasting, setIsCasting] = useState(false);
   const [isCastAvailable, setIsCastAvailable] = useState(false);
   const [isControllingCast, setIsControllingCast] = useState(false);
+  
+  useEffect(() => {
+    const hasSeenSplash = sessionStorage.getItem('splashScreenShown');
+    if (!hasSeenSplash) {
+        setShowSplash(true);
+        const timer = setTimeout(() => {
+            setShowSplash(false);
+            sessionStorage.setItem('splashScreenShown', 'true');
+        }, 3000); // 3 seconds
+        return () => clearTimeout(timer);
+    }
+  }, []);
   
   // Check for /admin route on initial load
   useEffect(() => {
@@ -177,6 +194,9 @@ const App: React.FC = () => {
 
         const storedAutoDelete = localStorage.getItem('autoDelete');
         if (storedAutoDelete) setAutoDelete(JSON.parse(storedAutoDelete));
+        
+        const storedWatchlist = localStorage.getItem('watchlist');
+        if (storedWatchlist) setWatchlist(JSON.parse(storedWatchlist));
     } catch (error) {
         console.error("Failed to parse settings from localStorage", error);
     }
@@ -240,6 +260,10 @@ const App: React.FC = () => {
   useEffect(() => {
       localStorage.setItem('autoDelete', JSON.stringify(autoDelete));
   }, [autoDelete]);
+  
+  useEffect(() => {
+      localStorage.setItem('watchlist', JSON.stringify(watchlist));
+  }, [watchlist]);
 
   useEffect(() => {
     if (autoDelete) {
@@ -283,6 +307,14 @@ const App: React.FC = () => {
 
   const handleRemoveDownload = (movieId: number) => {
       setDownloadedMovies(prev => prev.filter(m => m.id !== movieId));
+  };
+  
+  const handleToggleWatchlist = (movieId: number) => {
+    setWatchlist(prev => 
+      prev.includes(movieId) 
+        ? prev.filter(id => id !== movieId)
+        : [...prev, movieId]
+    );
   };
 
   useEffect(() => {
@@ -402,6 +434,10 @@ const App: React.FC = () => {
     setActiveTab(tab);
   };
   
+  if (showSplash) {
+      return <SplashScreen />;
+  }
+
   if (appView === 'admin') {
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>
@@ -453,7 +489,7 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     if (selectedMovie) {
-        return <MovieDetails movie={selectedMovie} onBack={handleBackFromDetails} onDownload={handleDownloadMovie} downloadedMovies={downloadedMovies} onPlay={handlePlayMovie} />;
+        return <MovieDetails movie={selectedMovie} onBack={handleBackFromDetails} onDownload={handleDownloadMovie} downloadedMovies={downloadedMovies} onPlay={handlePlayMovie} watchlist={watchlist} onToggleWatchlist={handleToggleWatchlist} />;
     }
     
     switch (activeTab) {
@@ -487,8 +523,8 @@ const App: React.FC = () => {
         return <Downloads movies={downloadedMovies} onRemove={handleRemoveDownload} onMovieClick={handleMovieSelect} />;
       case 'Films':
         return <FilmsPage onMovieClick={handleMovieSelect} />;
-      case 'Subscriptions':
-        return <SubscriptionsPage />;
+      case 'Watchlist':
+        return <Watchlist watchlistIds={watchlist} onMovieClick={handleMovieSelect} onRemove={handleToggleWatchlist} />;
       default:
         return (
             <div className="p-4 text-center text-[var(--text-color-secondary)] mt-8">
@@ -500,7 +536,7 @@ const App: React.FC = () => {
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <div className="bg-[var(--background-color-secondary)] h-screen w-full max-w-md mx-auto flex flex-col font-sans shadow-2xl text-[var(--text-color)]">
+      <div className="bg-[var(--background-color-secondary)] h-screen w-full max-w-md mx-auto flex flex-col font-sans shadow-2xl text-[var(--text-color)] animate-fade-in">
         {/* Status bar simulation */}
         <div className="bg-black/50 text-white text-xs px-4 pt-1 flex justify-between fixed top-0 left-0 right-0 max-w-md mx-auto z-50">
           <span>9:41</span>

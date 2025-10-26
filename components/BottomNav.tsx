@@ -1,5 +1,5 @@
 import React from 'react';
-import { HomeIcon, SubscriptionsIcon, DownloadIcon, SearchIcon, FilmIcon } from './Icons';
+import { HomeIcon, DownloadIcon, SearchIcon, FilmIcon, BookmarkIcon } from './Icons';
 
 interface NavItemProps {
   Icon: React.ElementType;
@@ -27,7 +27,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
   const navItems = [
     { name: 'Home', icon: HomeIcon },
     { name: 'Films', icon: FilmIcon },
-    { name: 'Subscriptions', icon: SubscriptionsIcon },
+    { name: 'Watchlist', icon: BookmarkIcon },
     { name: 'Downloads', icon: DownloadIcon },
     { name: 'Search', icon: SearchIcon },
   ];
