@@ -98,3 +98,17 @@ export const CHANNELS: Channel[] = [
     { id: 5, name: 'Showtime', logoUrl: 'https://picsum.photos/seed/showtime/200', description: 'Critically acclaimed original series, hit movies, and more.', price: '$10.99/mo', subscribed: true },
     { id: 6, name: 'BritBox', logoUrl: 'https://picsum.photos/seed/britbox/200', description: 'The biggest streaming collection of British TV.', price: '$7.99/mo' },
 ];
+
+// New data for Kids Page
+export const ANIMATED_MOVIES: Movie[] = [
+  { id: 15, posterUrl: 'https://picsum.photos/seed/animated1/300/450', title: 'Leo the Lion', year: 2023, duration: '1h 32m', rating: 'G', description: 'A young lion cub learns about courage and friendship in the African savanna.', backdropUrl: 'https://picsum.photos/seed/animated1-backdrop/800/450', baseSize: 1.1 },
+  { id: 16, posterUrl: 'https://picsum.photos/seed/animated2/300/450', title: 'Space Cadets', year: 2024, duration: '1h 45m', rating: 'PG', description: 'A group of friends build a rocket and accidentally launch themselves into an adventure across the galaxy.', backdropUrl: 'https://picsum.photos/seed/animated2-backdrop/800/450', baseSize: 1.3 },
+  { id: 17, posterUrl: 'https://picsum.photos/seed/animated3/300/450', title: 'The Magical Forest', year: 2022, duration: '1h 28m', rating: 'G', description: 'Two siblings discover a hidden world of magical creatures right in their own backyard.', backdropUrl: 'https://picsum.photos/seed/animated3-backdrop/800/450', baseSize: 1.0 },
+  { id: 18, posterUrl: 'https://picsum.photos/seed/animated4/300/450', title: 'Robot Pals', year: 2024, duration: '1h 35m', rating: 'PG', description: 'A lonely boy befriends a quirky, outdated robot, and together they try to win the school science fair.', backdropUrl: 'https://picsum.photos/seed/animated4-backdrop/800/450', baseSize: 1.2 },
+];
+
+export const FAMILY_FAVORITES: Movie[] = [
+  { id: 19, posterUrl: 'https://picsum.photos/seed/family1/400/225', title: 'The Great Dog Race', year: 2023, duration: '1h 41m', rating: 'G', description: 'A family enters their mischievous but lovable golden retriever into a national dog competition.', backdropUrl: 'https://picsum.photos/seed/family1-backdrop/800/450', baseSize: 1.4 },
+  { id: 20, posterUrl: 'https://picsum.photos/seed/family2/400/225', title: 'Island Adventure', year: 2022, duration: '1h 55m', rating: 'PG', description: 'A family vacation goes awry when they get shipwrecked on a deserted island full of secrets.', backdropUrl: 'https://picsum.photos/seed/family2-backdrop/800/450', baseSize: 1.6 },
+  { id: 21, posterUrl: 'https://picsum.photos/seed/family3/400/225', title: 'Mystery at the Museum', year: 2024, duration: '1h 38m', rating: 'PG', description: 'A group of kids on a school trip must solve the mystery of a missing artifact before morning.', backdropUrl: 'https://picsum.photos/seed/family3-backdrop/800/450', baseSize: 1.3 },
+];

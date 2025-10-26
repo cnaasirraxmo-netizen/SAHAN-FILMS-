@@ -1,15 +1,11 @@
+
+
 import React, { useState } from 'react';
 import { PrimeLogo, GoogleIcon } from './Icons';
 import { auth } from '../firebase';
-// FIX: Use modular imports for Firebase v9+ SDK auth functions.
-import { 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    updateProfile, 
-    GoogleAuthProvider, 
-    signInWithPopup, 
-    sendPasswordResetEmail 
-} from 'firebase/auth';
+// FIX: Import firebase compat to resolve module export errors for auth functions.
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
 
 const Auth: React.FC = () => {
     const [authView, setAuthView] = useState<'login' | 'signup' | 'reset'>('login');
@@ -62,13 +58,13 @@ const Auth: React.FC = () => {
 
         try {
             if (authView === 'login') {
-                // FIX: Use modularly imported signInWithEmailAndPassword function.
-                await signInWithEmailAndPassword(auth, email, password);
+                // FIX: Use compat API for signInWithEmailAndPassword.
+                await auth.signInWithEmailAndPassword(email, password);
             } else {
-                // FIX: Use modularly imported createUserWithEmailAndPassword function.
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                // FIX: Use modularly imported updateProfile function.
-                await updateProfile(userCredential.user, {
+                // FIX: Use compat API for createUserWithEmailAndPassword.
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                // FIX: updateProfile is a method on the user object in compat mode.
+                await userCredential.user.updateProfile({
                     displayName: name,
                     photoURL: `https://picsum.photos/seed/${name.toLowerCase()}/200`
                 });
@@ -81,13 +77,13 @@ const Auth: React.FC = () => {
     };
 
     const handleGoogleSignIn = async () => {
-        // FIX: Use modularly imported GoogleAuthProvider class.
-        const provider = new GoogleAuthProvider();
+        // FIX: Use compat API for GoogleAuthProvider.
+        const provider = new firebase.auth.GoogleAuthProvider();
         resetState();
         setLoading(true);
         try {
-            // FIX: Use modularly imported signInWithPopup function.
-            await signInWithPopup(auth, provider);
+            // FIX: Use compat API for signInWithPopup.
+            await auth.signInWithPopup(provider);
         } catch (err: any) {
             handleAuthError(err);
         } finally {
@@ -104,8 +100,8 @@ const Auth: React.FC = () => {
         resetState();
         setLoading(true);
         try {
-            // FIX: Use modularly imported sendPasswordResetEmail function.
-            await sendPasswordResetEmail(auth, email);
+            // FIX: Use compat API for sendPasswordResetEmail.
+            await auth.sendPasswordResetEmail(email);
             setSuccessMessage('Password reset link sent! Check your email inbox.');
         } catch (err: any) {
             handleAuthError(err);

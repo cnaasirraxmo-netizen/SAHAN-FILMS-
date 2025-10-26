@@ -6,9 +6,11 @@ interface ModalProps {
   onConfirm: () => void;
   title: string;
   children: React.ReactNode;
+  confirmButtonText?: string;
+  confirmButtonClass?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onConfirm, title, children }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onConfirm, title, children, confirmButtonText = 'Confirm', confirmButtonClass = 'bg-red-600 text-white font-semibold hover:bg-red-700' }) => {
   if (!isOpen) return null;
 
   return (
@@ -25,9 +27,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onConfirm, title, childr
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 rounded-md bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors"
+            className={`px-4 py-2 rounded-md transition-colors ${confirmButtonClass}`}
           >
-            Confirm
+            {confirmButtonText}
           </button>
         </div>
       </div>

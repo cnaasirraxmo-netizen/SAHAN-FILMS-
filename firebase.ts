@@ -1,10 +1,10 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// FIX: Use modular imports for Firebase v9+ SDK.
-import { getAuth } from "firebase/auth";
-// FIX: Use modular imports for Firebase v9+ SDK.
-import { getFirestore, setDoc, doc, getDoc, deleteDoc } from "firebase/firestore";
+
+
+// FIX: Use Firebase v9 compat libraries to resolve module export errors.
+import firebase from "firebase/compat/app";
+import "firebase/compat/analytics";
+import "firebase/compat/auth";
+import "firebase/compat/firestore";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -19,11 +19,12 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-// FIX: Use modularly imported getAuth function.
-const auth = getAuth(app);
-const db = getFirestore(app);
+const app = firebase.initializeApp(firebaseConfig);
+// FIX: Use compat API for Analytics
+const analytics = firebase.analytics ? firebase.analytics(app) : undefined;
+// FIX: Use compat API for Auth and Firestore
+export const auth = firebase.auth();
+export const db = firebase.firestore();
 
 // Example Firestore Functions
 
@@ -34,8 +35,8 @@ const db = getFirestore(app);
  */
 export const addUser = async (uid: string, data: object) => {
   try {
-    // FIX: Use modularly imported firestore functions.
-    await setDoc(doc(db, "users", uid), data, { merge: true });
+    // FIX: Use compat API for Firestore
+    await db.collection("users").doc(uid).set(data, { merge: true });
     console.log("User data saved successfully for UID:", uid);
   } catch (error) {
     console.error("Error writing user document: ", error);
@@ -49,11 +50,11 @@ export const addUser = async (uid: string, data: object) => {
  */
 export const getUser = async (uid: string) => {
   try {
-    // FIX: Use modularly imported firestore functions.
-    const userDocRef = doc(db, "users", uid);
-    const docSnap = await getDoc(userDocRef);
+    // FIX: Use compat API for Firestore
+    const userDocRef = db.collection("users").doc(uid);
+    const docSnap = await userDocRef.get();
 
-    if (docSnap.exists()) {
+    if (docSnap.exists) {
       console.log("User data:", docSnap.data());
       return docSnap.data();
     } else {
@@ -70,10 +71,10 @@ export const getUser = async (uid: string) => {
  * Deletes a user's document from the 'users' collection.
  * @param uid - The user's unique ID.
  */
-export const deleteUser = async (uid: string) => {
+export const deleteUserDocument = async (uid: string) => {
   try {
-    // FIX: Use modularly imported firestore functions.
-    await deleteDoc(doc(db, "users", uid));
+    // FIX: Use compat API for Firestore
+    await db.collection("users").doc(uid).delete();
     console.log("User document deleted successfully for UID:", uid);
   } catch (error) {
     console.error("Error deleting user document:", error);
@@ -81,4 +82,4 @@ export const deleteUser = async (uid: string) => {
 };
 
 
-export { app, analytics, auth, db };
+export { app, analytics };

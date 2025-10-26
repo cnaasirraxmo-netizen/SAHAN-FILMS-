@@ -1,7 +1,11 @@
+
+
+
 import React, { useState, useEffect, createContext } from 'react';
 import { auth } from './firebase';
-// FIX: Use modular imports for Firebase v9+ SDK for auth functions and types.
-import { onAuthStateChanged, signOut, type User as FirebaseUser } from 'firebase/auth';
+// FIX: Import firebase compat to resolve module export errors for auth functions.
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
 import Header from './components/Header';
 import CategoryNav from './components/CategoryNav';
 import HeroCarousel from './components/HeroCarousel';
@@ -23,11 +27,11 @@ import VideoPlayer from './components/VideoPlayer';
 import CastPlayer from './components/CastPlayer';
 import CategoryPage from './components/CategoryPage';
 import FilmsPage from './components/FilmsPage';
-import SubscriptionsPage from './components/SubscriptionsPage';
-import Watchlist from './components/Watchlist';
+import KidsPage from './components/KidsPage';
 import AdminPage from './components/AdminPage';
 import SplashScreen from './components/SplashScreen';
 import Auth from './components/Auth';
+import MyAccount from './components/MyAccount';
 import { CAROUSEL_ITEMS, PRIME_MOVIES, PRIME_ORIGINALS, CONTINUE_WATCHING, PROFILES, CATEGORIES } from './constants';
 import { Movie, Profile, DownloadQuality, User } from './types';
 import { ChevronLeftIcon } from './components/Icons';
@@ -40,9 +44,8 @@ export const ThemeContext = createContext<{ theme: Theme, toggleTheme: () => voi
   toggleTheme: () => {},
 });
 
-type View = 'app' | 'profiles' | 'profileDetails';
+type View = 'app' | 'profiles' | 'profileDetails' | 'myAccount';
 type AppView = 'user' | 'admin';
-// FIX: The FirebaseUser type is now imported directly with an alias, resolving the namespace error.
 
 declare global {
   interface Window {
@@ -158,15 +161,14 @@ const App: React.FC = () => {
   const [downloadedMovies, setDownloadedMovies] = useState<Movie[]>([]);
   const [downloadQuality, setDownloadQuality] = useState<DownloadQuality>('Better');
   const [autoDelete, setAutoDelete] = useState<boolean>(false);
-  const [watchlist, setWatchlist] = useState<number[]>([]);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [isCasting, setIsCasting] = useState(false);
   const [isCastAvailable, setIsCastAvailable] = useState(false);
   const [isControllingCast, setIsControllingCast] = useState(false);
 
   useEffect(() => {
-    // FIX: Use modularly imported onAuthStateChanged function.
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+    // FIX: Use compat API for onAuthStateChanged and firebase.User type.
+    const unsubscribe = auth.onAuthStateChanged((firebaseUser: firebase.User | null) => {
         if (firebaseUser) {
             setCurrentUser({
                 uid: firebaseUser.uid,
@@ -213,8 +215,6 @@ const App: React.FC = () => {
         const storedAutoDelete = localStorage.getItem('autoDelete');
         if (storedAutoDelete) setAutoDelete(JSON.parse(storedAutoDelete));
         
-        const storedWatchlist = localStorage.getItem('watchlist');
-        if (storedWatchlist) setWatchlist(JSON.parse(storedWatchlist));
     } catch (error) {
         console.error("Failed to parse settings from localStorage", error);
     }
@@ -279,9 +279,6 @@ const App: React.FC = () => {
       localStorage.setItem('autoDelete', JSON.stringify(autoDelete));
   }, [autoDelete]);
   
-  useEffect(() => {
-      localStorage.setItem('watchlist', JSON.stringify(watchlist));
-  }, [watchlist]);
 
   useEffect(() => {
     if (autoDelete) {
@@ -304,8 +301,8 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
-    // FIX: Use modularly imported signOut function.
-    signOut(auth).catch(error => console.error("Sign out error", error));
+    // FIX: Use compat API for signOut.
+    auth.signOut().catch(error => console.error("Sign out error", error));
   };
   
   const handleDownloadMovie = (movie: Movie) => {
@@ -332,14 +329,6 @@ const App: React.FC = () => {
       setDownloadedMovies(prev => prev.filter(m => m.id !== movieId));
   };
   
-  const handleToggleWatchlist = (movieId: number) => {
-    setWatchlist(prev => 
-      prev.includes(movieId) 
-        ? prev.filter(id => id !== movieId)
-        : [...prev, movieId]
-    );
-  };
-
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove(theme === 'dark' ? 'light' : 'dark');
@@ -370,7 +359,7 @@ const App: React.FC = () => {
     }
   };
   
-  const handleProfileClick = () => setView('profiles');
+  const handleProfileClick = () => setView('myAccount');
   
   const handleProfileSelect = (profile: Profile) => {
     setSelectedProfile(profile);
@@ -466,8 +455,17 @@ const App: React.FC = () => {
     return <VideoPlayer movie={selectedMovie} onClose={handleClosePlayer} onNextEpisode={handleNextMovie} />;
   }
 
+  if (view === 'myAccount') {
+    return <MyAccount 
+      currentUser={currentUser} 
+      onBack={() => setView('app')}
+      onManageProfiles={() => setView('profiles')}
+      onLogout={handleLogout}
+    />;
+  }
+
   if (view === 'profiles') {
-    return <Profiles profiles={PROFILES} onProfileSelect={handleProfileSelect} onBack={() => setView('app')} />;
+    return <Profiles profiles={PROFILES} onProfileSelect={handleProfileSelect} onBack={() => setView('myAccount')} />;
   }
 
   if (view === 'profileDetails' && selectedProfile) {
@@ -500,7 +498,7 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     if (selectedMovie) {
-        return <MovieDetails movie={selectedMovie} onBack={handleBackFromDetails} onDownload={handleDownloadMovie} downloadedMovies={downloadedMovies} onPlay={handlePlayMovie} watchlist={watchlist} onToggleWatchlist={handleToggleWatchlist} />;
+        return <MovieDetails movie={selectedMovie} onBack={handleBackFromDetails} onDownload={handleDownloadMovie} downloadedMovies={downloadedMovies} onPlay={handlePlayMovie} />;
     }
     
     switch (activeTab) {
@@ -534,10 +532,8 @@ const App: React.FC = () => {
         return <Downloads movies={downloadedMovies} onRemove={handleRemoveDownload} onMovieClick={handleMovieSelect} />;
       case 'Films':
         return <FilmsPage onMovieClick={handleMovieSelect} />;
-      case 'Subscriptions':
-        return <SubscriptionsPage />;
-      case 'Watchlist':
-        return <Watchlist watchlistIds={watchlist} onMovieClick={handleMovieSelect} onRemove={handleToggleWatchlist} />;
+      case 'Kids':
+        return <KidsPage onMovieClick={handleMovieSelect} />;
       default:
         return (
             <div className="p-4 text-center text-[var(--text-color-secondary)] mt-8">

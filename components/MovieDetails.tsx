@@ -9,11 +9,9 @@ interface MovieDetailsProps {
   onDownload: (movie: Movie) => void;
   downloadedMovies: Movie[];
   onPlay: () => void;
-  watchlist: number[];
-  onToggleWatchlist: (movieId: number) => void;
 }
 
-const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, downloadedMovies, onPlay, watchlist, onToggleWatchlist }) => {
+const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, downloadedMovies, onPlay }) => {
     const { theme } = useContext(ThemeContext);
     
     const gradientClass = theme === 'dark'
@@ -21,7 +19,6 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, 
         : 'from-gray-900/60 via-gray-900/30 to-transparent';
 
     const isDownloaded = downloadedMovies.some(m => m.id === movie.id);
-    const isOnWatchlist = watchlist.includes(movie.id);
 
     const ActionButton: React.FC<{ Icon: React.FC<{className?: string}>, label: string, onClick?: () => void, active?: boolean }> = ({ Icon, label, onClick, active }) => (
         <button
@@ -60,18 +57,12 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, 
             <span>Play</span>
         </button>
 
-        <div className="flex justify-around items-start my-4">
+        <div className="flex justify-center items-start my-4">
             <ActionButton 
                 Icon={isDownloaded ? CheckIcon : DownloadIcon} 
                 label={isDownloaded ? "Downloaded" : "Download"} 
                 onClick={() => onDownload(movie)}
                 active={isDownloaded}
-            />
-            <ActionButton 
-                Icon={isOnWatchlist ? CheckIcon : AddToWatchlistIcon} 
-                label={isOnWatchlist ? "On Watchlist" : "Watchlist"}
-                onClick={() => onToggleWatchlist(movie.id)}
-                active={isOnWatchlist}
             />
         </div>
 
