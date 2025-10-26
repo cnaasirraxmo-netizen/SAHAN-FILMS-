@@ -48,8 +48,10 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, 
         <h1 className="text-3xl font-bold text-white">{movie.title}</h1>
         <div className="flex items-center space-x-3 text-sm text-gray-400 mt-1">
           <span>{movie.year}</span>
+          <span>&bull;</span>
           <span>{movie.duration}</span>
-          <span className="border border-gray-500 px-1 rounded text-xs">{movie.rating}</span>
+          <span>&bull;</span>
+          <span className="border border-gray-500/80 px-1.5 py-0.5 rounded text-xs font-semibold tracking-wide">{movie.rating}</span>
         </div>
         
         <button onClick={onPlay} className="w-full bg-white text-black font-bold py-3 rounded-md my-4 flex items-center justify-center space-x-2">

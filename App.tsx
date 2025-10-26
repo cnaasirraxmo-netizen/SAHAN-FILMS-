@@ -2,6 +2,8 @@
 
 
 
+
+
 import React, { useState, useEffect, createContext } from 'react';
 import { auth } from './firebase';
 // FIX: Import firebase compat to resolve module export errors for auth functions.
@@ -73,7 +75,13 @@ const ViewingHistory: React.FC<{ profile: Profile; onBack: () => void; onMovieCl
               <img src={movie.posterUrl} alt={movie.title} className="w-24 h-14 rounded-md object-cover" />
               <div className="flex-1">
                 <p className="font-semibold">{movie.title}</p>
-                <p className="text-sm text-[var(--text-color-secondary)]">{movie.year} &middot; {movie.duration}</p>
+                <p className="text-sm text-[var(--text-color-secondary)] flex items-center space-x-1.5">
+                    <span>{movie.year}</span>
+                    <span>&bull;</span>
+                    <span>{movie.duration}</span>
+                    <span>&bull;</span>
+                    <span className="border border-gray-500/80 px-1 rounded text-xs font-semibold tracking-wide">{movie.rating}</span>
+                </p>
                 <div className="w-full h-1 bg-gray-600/70 rounded-full mt-2">
                   <div className="h-full bg-sky-400 rounded-full" style={{ width: `${movie.progress}%` }}></div>
                 </div>

@@ -7,7 +7,8 @@ interface IconProps {
 
 export const PrimeLogo: React.FC<IconProps> = ({ className }) => (
   <svg className={className} viewBox="0 0 200 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <text x="100" y="25" textAnchor="middle" fontFamily="Roboto, Helvetica, Arial, sans-serif" fontSize="24" fill="var(--text-color)" fontWeight="bold">SAHAN FILMS ™</text>
+    <text x="100" y="18" dominantBaseline="middle" textAnchor="middle" fontFamily="Roboto, Helvetica, Arial, sans-serif" fontSize="22" fill="var(--text-color)" fontWeight="bold" letterSpacing="1">SAHAN</text>
+    <text x="100" y="34" dominantBaseline="middle" textAnchor="middle" fontFamily="Roboto, Helvetica, Arial, sans-serif" fontSize="10" fill="var(--text-color)" fontWeight="500" letterSpacing="4">FILMS ™</text>
   </svg>
 );
 
