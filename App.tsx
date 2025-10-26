@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect, createContext } from 'react';
 import { auth } from './firebase';
 // FIX: Import firebase compat to resolve module export errors for auth functions.
@@ -265,6 +266,101 @@ const App: React.FC = () => {
         initializeCastApi();
       }
     };
+  }, []);
+
+  // Effect for advanced PWA features: Push, Background Sync, Periodic Sync
+  useEffect(() => {
+    // Helper function to convert VAPID key for push notifications
+    function urlBase64ToUint8Array(base64String: string) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+            .replace(/-/g, '+')
+            .replace(/_/g, '/');
+
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+      
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+            if (!registration) {
+                console.error("Service worker registration not found.");
+                return;
+            }
+            
+            // --- Push Notifications ---
+            const requestNotificationPermission = async () => {
+                if (!('PushManager' in window)) {
+                    console.log('Push messaging is not supported.');
+                    return;
+                }
+                try {
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                        console.log('Notification permission granted.');
+                        // NOTE: Replace this placeholder with your actual VAPID public key from your server.
+                        const vapidPublicKey = 'BCgqBCEqZkU1a3S-w_q-w2e8j-5p-9n_7k_3v_1f_8x_6z_4o_2c_0a_8s_6w_4q_2m_0k_7i_5g_3e_1cQ';
+                        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+                        
+                        const subscription = await registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: convertedVapidKey,
+                        });
+                        console.log('Push subscription successful:', JSON.stringify(subscription));
+                        // In a real app, you would send this subscription object to your server to send pushes.
+                    } else {
+                        console.log('Notification permission denied.');
+                    }
+                } catch (error) {
+                    console.error('Failed to subscribe to push notifications:', error);
+                }
+            };
+            
+            // --- Background Sync ---
+            const registerBackgroundSync = async () => {
+                if ('sync' in registration) {
+                    try {
+                        await (registration as any).sync.register('my-background-sync');
+                        console.log('Background sync registered.');
+                    } catch (error) {
+                        console.error('Background sync registration failed:', error);
+                    }
+                } else {
+                    console.log('Background sync is not supported.');
+                }
+            };
+
+            // --- Periodic Sync ---
+            const registerPeriodicSync = async () => {
+                if ('periodicSync' in registration) {
+                    try {
+                        const status = await navigator.permissions.query({ name: 'periodic-background-sync' as PermissionName });
+                        if (status.state === 'granted') {
+                            await (registration as any).periodicSync.register('update-content-periodically', {
+                                minInterval: 24 * 60 * 60 * 1000, // 24 hours
+                            });
+                            console.log('Periodic sync registered.');
+                        } else {
+                            console.log('Periodic sync permission not granted. User may be prompted later.');
+                        }
+                    } catch (error) {
+                        console.error('Periodic sync registration failed:', error);
+                    }
+                } else {
+                    console.log('Periodic sync is not supported.');
+                }
+            };
+            
+            requestNotificationPermission();
+            registerBackgroundSync();
+            registerPeriodicSync();
+        });
+    }
   }, []);
 
   useEffect(() => {

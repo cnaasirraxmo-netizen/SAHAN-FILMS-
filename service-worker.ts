@@ -1,5 +1,9 @@
 /// <reference lib="webworker" />
 
+// FIX: Removed redeclaration of 'self' which was causing type conflicts with the global service worker scope.
+// FIX: Cast self to the correct ServiceWorkerGlobalScope type to fix errors where properties were not found on 'unknown'.
+const sw = self as unknown as ServiceWorkerGlobalScope;
+
 const STATIC_CACHE_NAME = 'sahan-films-static-v1';
 const DYNAMIC_CACHE_NAME = 'sahan-films-dynamic-v1';
 const IMAGE_CACHE_NAME = 'sahan-films-images-v1';
@@ -53,7 +57,7 @@ const APP_SHELL_URLS = [
 ];
 
 // Install event: Cache the App Shell
-self.addEventListener('install', (event: ExtendableEvent) => {
+sw.addEventListener('install', (event: ExtendableEvent) => {
   event.waitUntil(
     caches.open(STATIC_CACHE_NAME).then((cache) => {
       console.log('Service Worker: Pre-caching App Shell');
@@ -65,7 +69,7 @@ self.addEventListener('install', (event: ExtendableEvent) => {
 });
 
 // Activate event: Clean up old caches
-self.addEventListener('activate', (event: ExtendableEvent) => {
+sw.addEventListener('activate', (event: ExtendableEvent) => {
   const cacheWhitelist = [STATIC_CACHE_NAME, DYNAMIC_CACHE_NAME, IMAGE_CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -75,15 +79,16 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
             console.log('Service Worker: Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
+          return null;
         })
       );
     })
   );
-  return self.clients.claim();
+  return sw.clients.claim();
 });
 
 // Fetch event: Serve from cache or network
-self.addEventListener('fetch', (event: FetchEvent) => {
+sw.addEventListener('fetch', (event: FetchEvent) => {
   const url = new URL(event.request.url);
 
   // Strategy 1: Stale-While-Revalidate for images from picsum.photos
@@ -100,7 +105,7 @@ self.addEventListener('fetch', (event: FetchEvent) => {
     );
   }
   // Strategy 2: Cache-First for local assets (App Shell)
-  else if (APP_SHELL_URLS.includes(url.pathname) || url.origin === self.location.origin) {
+  else if (APP_SHELL_URLS.includes(url.pathname) || url.origin === sw.location.origin) {
     event.respondWith(
       caches.match(event.request).then((response) => {
         return response || fetch(event.request);
@@ -127,6 +132,91 @@ self.addEventListener('fetch', (event: FetchEvent) => {
             // which is the expected behavior for dynamic content offline.
             throw error;
         }
+      })
+    );
+  }
+});
+
+
+// --- PUSH NOTIFICATIONS ---
+// Listen for push events from a server
+sw.addEventListener('push', (event: PushEvent) => {
+  const data = event.data ? event.data.json() : { title: 'SAHAN FILMS ™', body: 'A new movie has been added!', icon: '/icons/icon-192x192.png' };
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/icons/icon-192x192.png',
+    badge: '/icons/icon-192x192.png' // A badge for the notification bar on mobile
+  };
+
+  event.waitUntil(
+    sw.registration.showNotification(data.title, options)
+  );
+});
+
+// Listen for notification clicks
+sw.addEventListener('notificationclick', (event: NotificationEvent) => {
+  event.notification.close();
+
+  event.waitUntil(
+    // FIX: Use 'self.clients' to access the Clients interface.
+    sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // If a window for the app is already open, focus it
+      for (const client of clientList) {
+        if (client.url === '/' && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise, open a new window
+      // FIX: Use 'self.clients' to access the Clients interface.
+      if (sw.clients.openWindow) {
+        // FIX: Use 'self.clients' to access the Clients interface.
+        return sw.clients.openWindow('/');
+      }
+    })
+  );
+});
+
+
+// --- BACKGROUND SYNC ---
+// Listen for one-off sync events, triggered when connection is restored
+// FIX: Changed SyncEvent to 'any' to resolve type error for this experimental API.
+sw.addEventListener('sync', (event: any) => {
+  if (event.tag === 'my-background-sync') {
+    console.log('Service Worker: Background sync event received.');
+    event.waitUntil(
+      // Example: Send queued form data or analytics when connection is restored.
+      new Promise<void>(resolve => {
+        console.log("Simulating background sync task (e.g., sending queued data)...");
+        setTimeout(resolve, 2000); // Simulate network task
+      }).then(() => {
+        console.log("Background sync task complete.");
+        sw.registration.showNotification('Sync Complete', {
+          body: 'Your queued data has been successfully synced.'
+        });
+      })
+    );
+  }
+});
+
+
+// --- PERIODIC SYNC ---
+// Listen for periodic sync events to fetch content proactively
+// FIX: Changed PeriodicSyncEvent to 'any' to resolve type error for this experimental API.
+sw.addEventListener('periodicsync', (event: any) => {
+  if (event.tag === 'update-content-periodically') {
+    console.log('Service Worker: Periodic sync event received.');
+    event.waitUntil(
+      // Example: Fetch latest movie data and update cache.
+      new Promise<void>(resolve => {
+        console.log("Simulating periodic content update...");
+        // In a real app, you would fetch from the network and update caches here.
+        setTimeout(resolve, 3000);
+      }).then(() => {
+         console.log("Periodic content update complete.");
+         sw.registration.showNotification('Content Updated', {
+           body: 'New movies and shows are now available offline.'
+         });
       })
     );
   }

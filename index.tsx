@@ -17,7 +17,9 @@ root.render(
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
+    // FIX: Construct an absolute URL for the service worker to prevent cross-origin errors.
+    const serviceWorkerUrl = `${window.location.origin}/service-worker.js`;
+    navigator.serviceWorker.register(serviceWorkerUrl)
       .then(registration => {
         console.log('Service Worker registered with scope:', registration.scope);
       })
