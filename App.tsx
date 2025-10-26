@@ -1,8 +1,7 @@
-
-
-
-
 import React, { useState, useEffect, createContext } from 'react';
+import { auth } from './firebase';
+// FIX: Use modular imports for Firebase v9+ SDK for auth functions and types.
+import { onAuthStateChanged, signOut, type User as FirebaseUser } from 'firebase/auth';
 import Header from './components/Header';
 import CategoryNav from './components/CategoryNav';
 import HeroCarousel from './components/HeroCarousel';
@@ -24,12 +23,13 @@ import VideoPlayer from './components/VideoPlayer';
 import CastPlayer from './components/CastPlayer';
 import CategoryPage from './components/CategoryPage';
 import FilmsPage from './components/FilmsPage';
+import SubscriptionsPage from './components/SubscriptionsPage';
 import Watchlist from './components/Watchlist';
 import AdminPage from './components/AdminPage';
-import SplashScreen from './components/SplashScreen'; // Import the new Splash Screen
-// FIX: Corrected typo from CAROUSESECREL_ITEMS to CAROUSEL_ITEMS.
+import SplashScreen from './components/SplashScreen';
+import Auth from './components/Auth';
 import { CAROUSEL_ITEMS, PRIME_MOVIES, PRIME_ORIGINALS, CONTINUE_WATCHING, PROFILES, CATEGORIES } from './constants';
-import { Movie, Profile, DownloadQuality } from './types';
+import { Movie, Profile, DownloadQuality, User } from './types';
 import { ChevronLeftIcon } from './components/Icons';
 import MovieCard from './components/MovieCard';
 import ToggleSwitch from './components/ToggleSwitch';
@@ -41,9 +41,9 @@ export const ThemeContext = createContext<{ theme: Theme, toggleTheme: () => voi
 });
 
 type View = 'app' | 'profiles' | 'profileDetails';
-type AppView = 'user' | 'admin'; // New state to differentiate between user and admin views
+type AppView = 'user' | 'admin';
+// FIX: The FirebaseUser type is now imported directly with an alias, resolving the namespace error.
 
-// --- Add Cast SDK types to global window object ---
 declare global {
   interface Window {
     cast: any;
@@ -51,8 +51,6 @@ declare global {
     __onGCastApiAvailable: (isAvailable: boolean) => void;
   }
 }
-
-// --- Profile Feature Sub-Pages ---
 
 const ViewingHistory: React.FC<{ profile: Profile; onBack: () => void; onMovieClick: (movie: Movie) => void; }> = ({ profile, onBack, onMovieClick }) => {
   return (
@@ -144,9 +142,10 @@ const DeviceSync: React.FC<{ profile: Profile; onBack: () => void; }> = ({ profi
   );
 };
 
-
 const App: React.FC = () => {
-  const [showSplash, setShowSplash] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [appView, setAppView] = useState<AppView>('user');
   const [activeTab, setActiveTab] = useState('Home');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -164,20 +163,39 @@ const App: React.FC = () => {
   const [isCasting, setIsCasting] = useState(false);
   const [isCastAvailable, setIsCastAvailable] = useState(false);
   const [isControllingCast, setIsControllingCast] = useState(false);
-  
+
+  useEffect(() => {
+    // FIX: Use modularly imported onAuthStateChanged function.
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+        if (firebaseUser) {
+            setCurrentUser({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                name: firebaseUser.displayName,
+                avatarUrl: firebaseUser.photoURL,
+            });
+        } else {
+            setCurrentUser(null);
+        }
+        setAuthReady(true);
+    });
+    
+    return () => unsubscribe();
+  }, []);
+
   useEffect(() => {
     const hasSeenSplash = sessionStorage.getItem('splashScreenShown');
-    if (!hasSeenSplash) {
-        setShowSplash(true);
-        const timer = setTimeout(() => {
-            setShowSplash(false);
-            sessionStorage.setItem('splashScreenShown', 'true');
-        }, 3000); // 3 seconds
-        return () => clearTimeout(timer);
+    if (hasSeenSplash) {
+      setShowSplash(false);
+    } else {
+      const timer = setTimeout(() => {
+        setShowSplash(false);
+        sessionStorage.setItem('splashScreenShown', 'true');
+      }, 3000);
+      return () => clearTimeout(timer);
     }
   }, []);
-  
-  // Check for /admin route on initial load
+
   useEffect(() => {
     if (window.location.pathname === '/admin') {
       setAppView('admin');
@@ -284,6 +302,11 @@ const App: React.FC = () => {
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
+
+  const handleLogout = () => {
+    // FIX: Use modularly imported signOut function.
+    signOut(auth).catch(error => console.error("Sign out error", error));
+  };
   
   const handleDownloadMovie = (movie: Movie) => {
     setDownloadedMovies(prev => {
@@ -370,7 +393,6 @@ const App: React.FC = () => {
     if (isCasting) {
       const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
       if (castSession) {
-        // Using a generic, publicly available video for demonstration
         const mediaUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
         const mediaInfo = new window.chrome.cast.media.MediaInfo(mediaUrl, 'video/mp4');
         mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
@@ -395,32 +417,21 @@ const App: React.FC = () => {
   };
   
   const handleCastClick = () => {
-    if (!isCastAvailable) {
-      // Per Google UX guidelines, this button is disabled, so this code block
-      // should ideally not be reachable. This is a safeguard.
-      console.log("Cast button clicked, but no devices are available.");
-      return;
-    }
-
+    if (!isCastAvailable) return;
     const castContext = window.cast.framework.CastContext.getInstance();
     castContext.requestSession().catch((error: any) => {
-      // Log errors unless the user simply cancelled the dialog.
       if (error !== window.chrome.cast.ErrorCode.CANCEL) {
         console.error('Error requesting cast session:', error);
       }
     });
   };
 
-  const handleClosePlayer = () => {
-    setIsPlayerOpen(false);
-  };
+  const handleClosePlayer = () => setIsPlayerOpen(false);
 
   const handleNextMovie = () => {
     if (!selectedMovie) return;
-    
     const allMovies = [...PRIME_MOVIES, ...PRIME_ORIGINALS, ...CONTINUE_WATCHING];
     const currentIndex = allMovies.findIndex(m => m.id === selectedMovie.id);
-    
     if (currentIndex !== -1) {
         const nextIndex = (currentIndex + 1) % allMovies.length;
         setSelectedMovie(allMovies[nextIndex]);
@@ -428,15 +439,12 @@ const App: React.FC = () => {
   };
 
   const handleTabChange = (tab: string) => {
-    if (tab === 'Home' && activeTab === 'Home') {
-        setActiveCategory('All');
-    }
+    if (tab === 'Home' && activeTab === 'Home') setActiveCategory('All');
     setActiveTab(tab);
   };
   
-  if (showSplash) {
-      return <SplashScreen />;
-  }
+  if (showSplash) return <SplashScreen />;
+  if (!authReady) return null; // Wait for auth state to be ready
 
   if (appView === 'admin') {
     return (
@@ -444,6 +452,10 @@ const App: React.FC = () => {
             <AdminPage />
         </ThemeContext.Provider>
     );
+  }
+
+  if (!currentUser) {
+    return <Auth />;
   }
 
   if (isControllingCast && selectedMovie) {
@@ -474,7 +486,6 @@ const App: React.FC = () => {
     return <ProfileDetails profile={selectedProfile} onBack={handleBackFromProfileDetails} onFeatureSelect={setActiveProfileFeature} />;
   }
 
-
   const renderSettingsContent = () => {
     switch (activeSetting) {
       case 'theme': return <ThemeSettings />;
@@ -483,7 +494,7 @@ const App: React.FC = () => {
       case 'downloads': return <DownloadSettings quality={downloadQuality} onQualityChange={setDownloadQuality} autoDelete={autoDelete} onAutoDeleteChange={setAutoDelete} />;
       case 'data': return <DataUsageSettings />;
       case 'privacy': return <PrivacySettings />;
-      default: return <Settings onSettingClick={setActiveSetting} />;
+      default: return <Settings onSettingClick={setActiveSetting} onLogout={handleLogout} />;
     }
   };
 
@@ -523,6 +534,8 @@ const App: React.FC = () => {
         return <Downloads movies={downloadedMovies} onRemove={handleRemoveDownload} onMovieClick={handleMovieSelect} />;
       case 'Films':
         return <FilmsPage onMovieClick={handleMovieSelect} />;
+      case 'Subscriptions':
+        return <SubscriptionsPage />;
       case 'Watchlist':
         return <Watchlist watchlistIds={watchlist} onMovieClick={handleMovieSelect} onRemove={handleToggleWatchlist} />;
       default:
@@ -537,7 +550,6 @@ const App: React.FC = () => {
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       <div className="bg-[var(--background-color-secondary)] h-screen w-full max-w-md mx-auto flex flex-col font-sans shadow-2xl text-[var(--text-color)] animate-fade-in">
-        {/* Status bar simulation */}
         <div className="bg-black/50 text-white text-xs px-4 pt-1 flex justify-between fixed top-0 left-0 right-0 max-w-md mx-auto z-50">
           <span>9:41</span>
           <div className="flex items-center space-x-1">
@@ -560,6 +572,7 @@ const App: React.FC = () => {
                     isCastAvailable={isCastAvailable}
                     isCasting={isCasting}
                     onCastClick={handleCastClick}
+                    currentUser={currentUser}
                 />
             }
         </div>

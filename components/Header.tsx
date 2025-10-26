@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { CastIcon, PrimeLogo, SearchIcon, SettingsIcon, ChevronLeftIcon } from './Icons';
+import { User } from '../types';
 
 interface HeaderProps {
     isSearchActive: boolean;
@@ -13,6 +13,7 @@ interface HeaderProps {
     isCastAvailable?: boolean;
     isCasting?: boolean;
     onCastClick?: () => void;
+    currentUser: User | null;
 }
 
 const settingTitles: { [key: string]: string } = {
@@ -21,9 +22,10 @@ const settingTitles: { [key: string]: string } = {
   notifications: 'Notifications',
   data: 'Data Usage',
   privacy: 'Privacy & Security',
+  downloads: 'Download Settings',
 };
 
-const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSettingsActive, onSettingsClick, onBackClick, activeSetting, onProfileClick, isCastAvailable, isCasting, onCastClick }) => {
+const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSettingsActive, onSettingsClick, onBackClick, activeSetting, onProfileClick, isCastAvailable, isCasting, onCastClick, currentUser }) => {
   if (isSearchActive) {
     return (
         <header className="px-4 py-2 flex items-center bg-[var(--background-color)] border-b border-[var(--border-color)]">
@@ -68,7 +70,7 @@ const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSetti
         </button>
         <button onClick={onProfileClick} aria-label="Open profiles">
             <img
-                src="https://picsum.photos/seed/avatar/40/40"
+                src={currentUser?.avatarUrl || "https://picsum.photos/seed/avatar/40/40"}
                 alt="User Avatar"
                 className="h-8 w-8 rounded-full"
             />

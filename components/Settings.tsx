@@ -9,7 +9,8 @@ import {
   HistoryIcon,
   DeleteIcon,
   ChevronRightIcon,
-  DownloadIcon
+  DownloadIcon,
+  LogoutIcon
 } from './Icons';
 
 type SettingItemType = 'page' | 'action';
@@ -21,23 +22,25 @@ interface Setting {
   text: string;
 }
 
-const settingsItems: Setting[] = [
-  { id: 'theme', type: 'page', icon: ThemeIcon, text: 'Dark/Light theme toggle' },
-  { id: 'language', type: 'page', icon: LanguageIcon, text: 'Language preferences' },
-  { id: 'notifications', type: 'page', icon: NotificationIcon, text: 'Notification settings' },
-  { id: 'downloads', type: 'page', icon: DownloadIcon, text: 'Download settings' },
-  { id: 'data', type: 'page', icon: DataUsageIcon, text: 'Data usage controls' },
-  { id: 'privacy', type: 'page', icon: PrivacyIcon, text: 'Privacy & security settings' },
-  { id: 'history', type: 'action', icon: HistoryIcon, text: 'Clear watch history' },
-  { id: 'delete', type: 'action', icon: DeleteIcon, text: 'Delete account' },
-];
-
 interface SettingsProps {
     onSettingClick: (id: string) => void;
+    onLogout: () => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ onSettingClick }) => {
+const Settings: React.FC<SettingsProps> = ({ onSettingClick, onLogout }) => {
   const [modalContent, setModalContent] = useState<{ title: string; message: string; onConfirm: () => void; } | null>(null);
+
+  const settingsItems: Setting[] = [
+    { id: 'theme', type: 'page', icon: ThemeIcon, text: 'Dark/Light theme toggle' },
+    { id: 'language', type: 'page', icon: LanguageIcon, text: 'Language preferences' },
+    { id: 'notifications', type: 'page', icon: NotificationIcon, text: 'Notification settings' },
+    { id: 'downloads', type: 'page', icon: DownloadIcon, text: 'Download settings' },
+    { id: 'data', type: 'page', icon: DataUsageIcon, text: 'Data usage controls' },
+    { id: 'privacy', type: 'page', icon: PrivacyIcon, text: 'Privacy & security settings' },
+    { id: 'history', type: 'action', icon: HistoryIcon, text: 'Clear watch history' },
+    { id: 'logout', type: 'action', icon: LogoutIcon, text: 'Log Out' },
+    { id: 'delete', type: 'action', icon: DeleteIcon, text: 'Delete account' },
+  ];
 
   const handleActionClick = (id: string) => {
     if (id === 'history') {
@@ -55,6 +58,15 @@ const Settings: React.FC<SettingsProps> = ({ onSettingClick }) => {
         message: 'Are you sure you want to permanently delete your account? All your data will be lost.',
         onConfirm: () => {
           console.log('Account deleted');
+          setModalContent(null);
+        },
+      });
+    } else if (id === 'logout') {
+      setModalContent({
+        title: 'Log Out',
+        message: 'Are you sure you want to log out of your account?',
+        onConfirm: () => {
+          onLogout();
           setModalContent(null);
         },
       });

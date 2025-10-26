@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1024052424333",
+    "project_id": "sahan-film",
+    "storage_bucket": "sahan-film.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1024052424333:android:506bcdfa7a511122837cc4",
+        "android_client_info": {
+          "package_name": "Com.sahan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUxBopjS9oboaNU12OsbhJrQFuGaJTOr4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

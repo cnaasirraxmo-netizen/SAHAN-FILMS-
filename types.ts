@@ -38,3 +38,10 @@ export interface Channel {
   price: string;
   subscribed?: boolean;
 }
+
+export interface User {
+  uid: string;
+  email: string | null;
+  name: string | null;
+  avatarUrl: string | null;
+}

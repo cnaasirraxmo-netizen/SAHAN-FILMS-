@@ -158,6 +158,12 @@ export const ParentalControlsIcon: React.FC<IconProps> = ({ className }) => (
   </svg>
 );
 
+export const TvIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v2m6-2v2m-6-6h.01M12 11h.01M15 11h.01M3 7h18a2 2 0 012 2v8a2 2 0 01-2 2H3a2 2 0 01-2-2V9a2 2 0 012-2z" />
+  </svg>
+);
+
 // Video Player Icons
 export const PauseIcon: React.FC<IconProps> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
@@ -275,4 +281,19 @@ export const UploadIcon: React.FC<IconProps> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
   </svg>
+);
+
+export const GoogleIcon: React.FC<IconProps> = ({ className }) => (
+  <svg className={className} viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+    <path fill="#FF3D00" d="M6.306 14.691c-1.229 2.196-1.956 4.71-1.956 7.309c0 2.6 0.727 5.113 1.956 7.309l-5.657 5.657C0.822 30.577 0 27.426 0 24c0-3.426 0.822-6.577 2.306-9.309L6.306 14.691z"/>
+    <path fill="#4CAF50" d="M24 48c5.268 0 10.046-1.953 13.694-5.306l-5.657-5.657C30.154 39.191 27.22 40 24 40c-5.223 0-9.651-3.343-11.303-8H6.306C9.423 39.047 16.202 44 24 44s14.577-4.953 17.694-12.309L43.694 37.309C39.954 43.047 32.268 48 24 48z"/>
+    <path fill="#1976D2" d="M43.611 20.083H24v8h11.303c-0.792 2.237-2.231 4.16-4.087 5.571l5.657 5.657C41.183 36.502 44 31.427 44 24c0-1.341-0.138-2.65-0.389-3.917z"/>
+  </svg>
+);
+
+export const LogoutIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+    </svg>
 );
