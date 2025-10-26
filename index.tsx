@@ -15,16 +15,16 @@ root.render(
   </React.StrictMode>
 );
 
+// Since this is a module script that runs after the document is parsed,
+// we can attempt to register the service worker directly.
+// This avoids timing issues related to the 'load' event that can cause
+// an "invalid state" error in some environments.
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // FIX: Construct an absolute URL for the service worker to prevent cross-origin errors.
-    const serviceWorkerUrl = `${window.location.origin}/service-worker.js`;
-    navigator.serviceWorker.register(serviceWorkerUrl)
-      .then(registration => {
-        console.log('Service Worker registered with scope:', registration.scope);
-      })
-      .catch(error => {
-        console.error('Service Worker registration failed:', error);
-      });
-  });
+  navigator.serviceWorker.register(`${window.location.origin}/service-worker.js`)
+    .then(registration => {
+      console.log('Service Worker registered with scope:', registration.scope);
+    })
+    .catch(error => {
+      console.error('Service Worker registration failed:', error);
+    });
 }
