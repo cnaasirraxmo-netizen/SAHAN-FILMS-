@@ -8,7 +8,8 @@ import {
   PrivacyIcon,
   HistoryIcon,
   DeleteIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  DownloadIcon
 } from './Icons';
 
 type SettingItemType = 'page' | 'action';
@@ -24,6 +25,7 @@ const settingsItems: Setting[] = [
   { id: 'theme', type: 'page', icon: ThemeIcon, text: 'Dark/Light theme toggle' },
   { id: 'language', type: 'page', icon: LanguageIcon, text: 'Language preferences' },
   { id: 'notifications', type: 'page', icon: NotificationIcon, text: 'Notification settings' },
+  { id: 'downloads', type: 'page', icon: DownloadIcon, text: 'Download settings' },
   { id: 'data', type: 'page', icon: DataUsageIcon, text: 'Data usage controls' },
   { id: 'privacy', type: 'page', icon: PrivacyIcon, text: 'Privacy & security settings' },
   { id: 'history', type: 'action', icon: HistoryIcon, text: 'Clear watch history' },

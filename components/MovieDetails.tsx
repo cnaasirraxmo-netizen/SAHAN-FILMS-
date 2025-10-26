@@ -1,22 +1,31 @@
 import React, { useContext } from 'react';
 import { Movie } from '../types';
-import { ChevronLeftIcon, PlayIcon, DownloadIcon, AddToWatchlistIcon } from './Icons';
+import { ChevronLeftIcon, PlayIcon, DownloadIcon, AddToWatchlistIcon, CheckIcon } from './Icons';
 import { ThemeContext } from '../App';
 
 interface MovieDetailsProps {
   movie: Movie;
   onBack: () => void;
+  onDownload: (movie: Movie) => void;
+  downloadedMovies: Movie[];
+  onPlay: () => void;
 }
 
-const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack }) => {
+const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, downloadedMovies, onPlay }) => {
     const { theme } = useContext(ThemeContext);
     
     const gradientClass = theme === 'dark'
         ? 'from-black/80 via-black/50 to-transparent'
         : 'from-gray-900/60 via-gray-900/30 to-transparent';
 
-    const ActionButton: React.FC<{ Icon: React.FC<{className?: string}>, label: string }> = ({ Icon, label }) => (
-        <button className="flex flex-col items-center space-y-1 text-xs text-[var(--text-color-secondary)] hover:text-[var(--text-color)]">
+    const isDownloaded = downloadedMovies.some(m => m.id === movie.id);
+
+    const ActionButton: React.FC<{ Icon: React.FC<{className?: string}>, label: string, onClick?: () => void, active?: boolean }> = ({ Icon, label, onClick, active }) => (
+        <button
+            onClick={onClick}
+            disabled={active}
+            className={`flex flex-col items-center space-y-1 text-xs ${active ? 'text-sky-400' : 'text-[var(--text-color-secondary)] hover:text-[var(--text-color)]'} disabled:cursor-default w-24`}
+        >
             <Icon className="w-6 h-6" />
             <span>{label}</span>
         </button>
@@ -43,13 +52,18 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack }) => {
           <span className="border border-gray-500 px-1 rounded text-xs">{movie.rating}</span>
         </div>
         
-        <button className="w-full bg-white text-black font-bold py-3 rounded-md my-4 flex items-center justify-center space-x-2">
+        <button onClick={onPlay} className="w-full bg-white text-black font-bold py-3 rounded-md my-4 flex items-center justify-center space-x-2">
             <PlayIcon className="w-6 h-6" />
             <span>Play</span>
         </button>
 
         <div className="flex justify-around items-start my-4">
-            <ActionButton Icon={DownloadIcon} label="Download" />
+            <ActionButton 
+                Icon={isDownloaded ? CheckIcon : DownloadIcon} 
+                label={isDownloaded ? "Downloaded" : "Download"} 
+                onClick={() => onDownload(movie)}
+                active={isDownloaded}
+            />
             <ActionButton Icon={AddToWatchlistIcon} label="Watchlist" />
         </div>
 

@@ -1,4 +1,4 @@
-import { CarouselItem, Movie, Profile } from './types';
+import { CarouselItem, Movie, Profile, Channel } from './types';
 
 export const CAROUSEL_ITEMS: CarouselItem[] = [
   {
@@ -25,26 +25,26 @@ export const CAROUSEL_ITEMS: CarouselItem[] = [
 ];
 
 export const PRIME_MOVIES: Movie[] = [
-  { id: 1, posterUrl: 'https://picsum.photos/seed/idea/400/225', title: 'The Idea of You', year: 2024, duration: '1h 55m', rating: 'R', description: 'A 40-year-old single mom begins an unexpected romance with a 24-year-old boy band singer.', backdropUrl: 'https://picsum.photos/seed/idea-backdrop/800/450' },
-  { id: 2, posterUrl: 'https://picsum.photos/seed/roadhouse/400/225', title: 'Road House', year: 2024, duration: '2h 1m', rating: 'R', description: 'A former UFC fighter takes a job as a bouncer at a rough-and-tumble roadhouse in the Florida Keys, but soon discovers that not everything is as it seems in this tropical paradise.', backdropUrl: 'https://picsum.photos/seed/roadhouse-backdrop/800/450' },
-  { id: 3, posterUrl: 'https://picsum.photos/seed/fallout/400/225', title: 'Fallout', year: 2024, duration: '1 Season', rating: 'TV-MA', description: 'In a future, post-apocalyptic Los Angeles brought about by nuclear decimation, citizens must live in underground bunkers to protect themselves from radiation, mutants and bandits.', backdropUrl: 'https://picsum.photos/seed/fallout-backdrop/800/450' },
+  { id: 1, posterUrl: 'https://picsum.photos/seed/idea/400/225', title: 'The Idea of You', year: 2024, duration: '1h 55m', rating: 'R', description: 'A 40-year-old single mom begins an unexpected romance with a 24-year-old boy band singer.', backdropUrl: 'https://picsum.photos/seed/idea-backdrop/800/450', baseSize: 1.1 },
+  { id: 2, posterUrl: 'https://picsum.photos/seed/roadhouse/400/225', title: 'Road House', year: 2024, duration: '2h 1m', rating: 'R', description: 'A former UFC fighter takes a job as a bouncer at a rough-and-tumble roadhouse in the Florida Keys, but soon discovers that not everything is as it seems in this tropical paradise.', backdropUrl: 'https://picsum.photos/seed/roadhouse-backdrop/800/450', baseSize: 1.2 },
+  { id: 3, posterUrl: 'https://picsum.photos/seed/fallout/400/225', title: 'Fallout', year: 2024, duration: '1 Season', rating: 'TV-MA', description: 'In a future, post-apocalyptic Los Angeles brought about by nuclear decimation, citizens must live in underground bunkers to protect themselves from radiation, mutants and bandits.', backdropUrl: 'https://picsum.photos/seed/fallout-backdrop/800/450', baseSize: 8.5 },
 ];
 
 export const PRIME_ORIGINALS: Movie[] = [
-  { id: 4, posterUrl: 'https://picsum.photos/seed/invincible/300/450', title: 'Invincible', year: 2021, duration: '2 Seasons', rating: 'TV-MA', description: 'An adult animated series based on the Skybound/Image comic about a teenager whose father is the most powerful superhero on the planet.', backdropUrl: 'https://picsum.photos/seed/invincible-backdrop/800/450' },
-  { id: 5, posterUrl: 'https://picsum.photos/seed/federer/300/450', title: 'Federer: Twelve Final Days', year: 2024, duration: '1h 40m', rating: 'PG-13', description: 'A documentary following tennis legend Roger Federer during the last 12 days of his professional career.', backdropUrl: 'https://picsum.photos/seed/federer-backdrop/800/450' },
-  { id: 6, posterUrl: 'https://picsum.photos/seed/maxton/300/450', title: 'Maxton Hall', year: 2024, duration: '1 Season', rating: '16+', description: 'A quick-witted scholarship student discovers a secret at a private school and is drawn into the world of a super-rich and arrogant heir.', backdropUrl: 'https://picsum.photos/seed/maxton-backdrop/800/450' },
-  { id: 7, posterUrl: 'https://picsum.photos/seed/genv/300/450', title: 'Gen V', year: 2023, duration: '1 Season', rating: 'TV-MA', description: 'From the world of "The Boys" comes "Gen V," which explores the first generation of superheroes to know that their superpowers are from Compound V.', backdropUrl: 'https://picsum.photos/seed/genv-backdrop/800/450' },
+  { id: 4, posterUrl: 'https://picsum.photos/seed/invincible/300/450', title: 'Invincible', year: 2021, duration: '2 Seasons', rating: 'TV-MA', description: 'An adult animated series based on the Skybound/Image comic about a teenager whose father is the most powerful superhero on the planet.', backdropUrl: 'https://picsum.photos/seed/invincible-backdrop/800/450', baseSize: 15.0 },
+  { id: 5, posterUrl: 'https://picsum.photos/seed/federer/300/450', title: 'Federer: Twelve Final Days', year: 2024, duration: '1h 40m', rating: 'PG-13', description: 'A documentary following tennis legend Roger Federer during the last 12 days of his professional career.', backdropUrl: 'https://picsum.photos/seed/federer-backdrop/800/450', baseSize: 1.0 },
+  { id: 6, posterUrl: 'https://picsum.photos/seed/maxton/300/450', title: 'Maxton Hall', year: 2024, duration: '1 Season', rating: '16+', description: 'A quick-witted scholarship student discovers a secret at a private school and is drawn into the world of a super-rich and arrogant heir.', backdropUrl: 'https://picsum.photos/seed/maxton-backdrop/800/450', baseSize: 7.0 },
+  { id: 7, posterUrl: 'https://picsum.photos/seed/genv/300/450', title: 'Gen V', year: 2023, duration: '1 Season', rating: 'TV-MA', description: 'From the world of "The Boys" comes "Gen V," which explores the first generation of superheroes to know that their superpowers are from Compound V.', backdropUrl: 'https://picsum.photos/seed/genv-backdrop/800/450', baseSize: 7.5 },
 ];
 
 export const CONTINUE_WATCHING: Movie[] = [
-    { id: 8, posterUrl: 'https://picsum.photos/seed/cw1/400/225', progress: 75, title: 'Reacher', year: 2022, duration: '2 Seasons', rating: 'TV-14', description: 'Jack Reacher was arrested for murder and now the police need his help.', backdropUrl: 'https://picsum.photos/seed/reacher-backdrop/800/450' },
-    { id: 9, posterUrl: 'https://picsum.photos/seed/cw2/400/225', progress: 20, title: 'The Office', year: 2005, duration: '9 Seasons', rating: 'TV-14', description: 'A mockumentary on a group of typical office workers, where the workday consists of ego clashes, inappropriate behavior, and tedium.', backdropUrl: 'https://picsum.photos/seed/office-backdrop/800/450' },
-    { id: 10, posterUrl: 'https://picsum.photos/seed/cw3/400/225', progress: 50, title: 'Oppenheimer', year: 2023, duration: '3h 0m', rating: 'R', description: 'The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.', backdropUrl: 'https://picsum.photos/seed/oppenheimer-backdrop/800/450' },
-    { id: 11, posterUrl: 'https://picsum.photos/seed/cw4/400/225', progress: 90, title: 'Poor Things', year: 2023, duration: '2h 21m', rating: 'R', description: 'The incredible tale about the fantastical evolution of Bella Baxter, a young woman brought back to life by the brilliant and unorthodox scientist Dr. Godwin Baxter.', backdropUrl: 'https://picsum.photos/seed/poor-things-backdrop/800/450' },
-    { id: 12, posterUrl: 'https://picsum.photos/seed/cw5/400/225', progress: 15, title: 'The Terminal List', year: 2022, duration: '1 Season', rating: 'TV-MA', description: 'A former Navy SEAL officer investigates why his entire platoon was ambushed during a high-stakes covert mission.', backdropUrl: 'https://picsum.photos/seed/terminal-list-backdrop/800/450' },
-    { id: 13, posterUrl: 'https://picsum.photos/seed/cw6/400/225', progress: 65, title: 'The Summer I Turned Pretty', year: 2022, duration: '2 Seasons', rating: 'TV-14', description: 'A love triangle between one girl and two brothers. A story about first love, first heartbreak, and the magic of that one perfect summer.', backdropUrl: 'https://picsum.photos/seed/summer-pretty-backdrop/800/450' },
-    { id: 14, posterUrl: 'https://picsum.photos/seed/cw7/400/225', progress: 30, title: 'The Wheel of Time', year: 2021, duration: '2 Seasons', rating: 'TV-14', description: 'Set in a high fantasy world where magic exists, but only some can access it, a woman named Moiraine crosses paths with five young men and women.', backdropUrl: 'https://picsum.photos/seed/wot-backdrop/800/450' },
+    { id: 8, posterUrl: 'https://picsum.photos/seed/cw1/400/225', progress: 75, title: 'Reacher', year: 2022, duration: '2 Seasons', rating: 'TV-14', description: 'Jack Reacher was arrested for murder and now the police need his help.', backdropUrl: 'https://picsum.photos/seed/reacher-backdrop/800/450', baseSize: 16.0 },
+    { id: 9, posterUrl: 'https://picsum.photos/seed/cw2/400/225', progress: 20, title: 'The Office', year: 2005, duration: '9 Seasons', rating: 'TV-14', description: 'A mockumentary on a group of typical office workers, where the workday consists of ego clashes, inappropriate behavior, and tedium.', backdropUrl: 'https://picsum.photos/seed/office-backdrop/800/450', baseSize: 50.0 },
+    { id: 10, posterUrl: 'https://picsum.photos/seed/cw3/400/225', progress: 50, title: 'Oppenheimer', year: 2023, duration: '3h 0m', rating: 'R', description: 'The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.', backdropUrl: 'https://picsum.photos/seed/oppenheimer-backdrop/800/450', baseSize: 1.8 },
+    { id: 11, posterUrl: 'https://picsum.photos/seed/cw4/400/225', progress: 98, title: 'Poor Things', year: 2023, duration: '2h 21m', rating: 'R', description: 'The incredible tale about the fantastical evolution of Bella Baxter, a young woman brought back to life by the brilliant and unorthodox scientist Dr. Godwin Baxter.', backdropUrl: 'https://picsum.photos/seed/poor-things-backdrop/800/450', baseSize: 1.4 },
+    { id: 12, posterUrl: 'https://picsum.photos/seed/cw5/400/225', progress: 15, title: 'The Terminal List', year: 2022, duration: '1 Season', rating: 'TV-MA', description: 'A former Navy SEAL officer investigates why his entire platoon was ambushed during a high-stakes covert mission.', backdropUrl: 'https://picsum.photos/seed/terminal-list-backdrop/800/450', baseSize: 8.0 },
+    { id: 13, posterUrl: 'https://picsum.photos/seed/cw6/400/225', progress: 65, title: 'The Summer I Turned Pretty', year: 2022, duration: '2 Seasons', rating: 'TV-14', description: 'A love triangle between one girl and two brothers. A story about first love, first heartbreak, and the magic of that one perfect summer.', backdropUrl: 'https://picsum.photos/seed/summer-pretty-backdrop/800/450', baseSize: 14.0 },
+    { id: 14, posterUrl: 'https://picsum.photos/seed/cw7/400/225', progress: 30, title: 'The Wheel of Time', year: 2021, duration: '2 Seasons', rating: 'TV-14', description: 'Set in a high fantasy world where magic exists, but only some can access it, a woman named Moiraine crosses paths with five young men and women.', backdropUrl: 'https://picsum.photos/seed/wot-backdrop/800/450', baseSize: 15.5 },
 ];
 
 export const PROFILES: Profile[] = [
@@ -52,4 +52,49 @@ export const PROFILES: Profile[] = [
     { id: 2, name: 'Jessica', avatarUrl: 'https://picsum.photos/seed/jessica/200' },
     { id: 3, name: 'Mike', avatarUrl: 'https://picsum.photos/seed/mike/200' },
     { id: 4, name: 'Kids', avatarUrl: 'https://picsum.photos/seed/kids/200', isKid: true },
+];
+
+export const CATEGORIES = ['All', 'Movies', 'TV shows', 'Sports', 'Live TV', 'New Releases', 'Trending'];
+
+// New Carousel for Films Page
+export const FILMS_CAROUSEL_ITEMS: CarouselItem[] = [
+  {
+    id: 4,
+    imageUrl: 'https://picsum.photos/seed/dune/800/450',
+    title: 'NOW STREAMING',
+    subtitle: 'DUNE: PART TWO',
+    showBrand: false,
+  },
+  {
+    id: 5,
+    imageUrl: 'https://picsum.photos/seed/godzilla/800/450',
+    title: 'NEW RELEASE',
+    subtitle: 'GODZILLA X KONG',
+    showBrand: false,
+  },
+];
+
+// New Movie categories for Films Page
+export const ACTION_MOVIES: Movie[] = [
+  PRIME_MOVIES[1], // Road House
+  CONTINUE_WATCHING[0], // Reacher
+  CONTINUE_WATCHING[4], // The Terminal List
+  PRIME_MOVIES[2], // Fallout
+];
+
+export const DRAMA_MOVIES: Movie[] = [
+  PRIME_MOVIES[0], // The Idea of You
+  CONTINUE_WATCHING[2], // Oppenheimer
+  CONTINUE_WATCHING[3], // Poor Things
+  PRIME_ORIGINALS[1], // Federer
+];
+
+// New data for Subscriptions Page
+export const CHANNELS: Channel[] = [
+    { id: 1, name: 'Max', logoUrl: 'https://picsum.photos/seed/max/200', description: 'Stream all of HBO, plus hit series, movies, and Max Originals.', price: '$15.99/mo' },
+    { id: 2, name: 'Paramount+', logoUrl: 'https://picsum.photos/seed/paramount/200', description: 'Live sports, breaking news, and a mountain of entertainment.', price: '$5.99/mo', subscribed: true },
+    { id: 3, name: 'STARZ', logoUrl: 'https://picsum.photos/seed/starz/200', description: 'Obsessable series and hit movies.', price: '$8.99/mo' },
+    { id: 4, name: 'AMC+', logoUrl: 'https://picsum.photos/seed/amc/200', description: 'The best of AMC, IFC, Sundance, and more.', price: '$8.99/mo' },
+    { id: 5, name: 'Showtime', logoUrl: 'https://picsum.photos/seed/showtime/200', description: 'Critically acclaimed original series, hit movies, and more.', price: '$10.99/mo', subscribed: true },
+    { id: 6, name: 'BritBox', logoUrl: 'https://picsum.photos/seed/britbox/200', description: 'The biggest streaming collection of British TV.', price: '$7.99/mo' },
 ];

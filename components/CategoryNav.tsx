@@ -1,15 +1,24 @@
 import React from 'react';
 
-const CategoryNav: React.FC = () => {
-  const categories = ['Movies', 'TV shows', 'Sports', 'Live TV', 'New Releases', 'Trending'];
+interface CategoryNavProps {
+  categories: string[];
+  activeCategory: string;
+  onCategoryChange: (category: string) => void;
+}
 
+const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeCategory, onCategoryChange }) => {
   return (
     <nav className="px-4">
       <div className="flex space-x-3 overflow-x-auto no-scrollbar">
         {categories.map((category) => (
           <button
             key={category}
-            className="px-4 py-1.5 bg-[var(--card-bg)] text-[var(--text-color)] rounded-full text-sm font-semibold whitespace-nowrap"
+            onClick={() => onCategoryChange(category)}
+            className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors duration-200 ${
+              activeCategory === category
+                ? 'bg-white text-black'
+                : 'bg-[var(--card-bg)] text-[var(--text-color)]'
+            }`}
           >
             {category}
           </button>

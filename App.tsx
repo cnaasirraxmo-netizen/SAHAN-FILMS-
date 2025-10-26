@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, createContext } from 'react';
 import Header from './components/Header';
 import CategoryNav from './components/CategoryNav';
@@ -11,11 +13,20 @@ import LanguageSettings from './components/settings/LanguageSettings';
 import NotificationSettings from './components/settings/NotificationSettings';
 import DataUsageSettings from './components/settings/DataUsageSettings';
 import PrivacySettings from './components/settings/PrivacySettings';
+import DownloadSettings from './components/settings/DownloadSettings';
 import MovieDetails from './components/MovieDetails';
 import Profiles from './components/Profiles';
 import ProfileDetails from './components/ProfileDetails';
-import { CAROUSEL_ITEMS, PRIME_MOVIES, PRIME_ORIGINALS, CONTINUE_WATCHING, PROFILES } from './constants';
-import { Movie, Profile } from './types';
+import Downloads from './components/Downloads';
+import VideoPlayer from './components/VideoPlayer';
+import CastPlayer from './components/CastPlayer';
+import CategoryPage from './components/CategoryPage';
+import FilmsPage from './components/FilmsPage';
+import SubscriptionsPage from './components/SubscriptionsPage';
+import AdminPage from './components/AdminPage'; // Import the new Admin Page
+// FIX: Corrected typo from CAROUSESECREL_ITEMS to CAROUSEL_ITEMS.
+import { CAROUSEL_ITEMS, PRIME_MOVIES, PRIME_ORIGINALS, CONTINUE_WATCHING, PROFILES, CATEGORIES } from './constants';
+import { Movie, Profile, DownloadQuality } from './types';
 import { ChevronLeftIcon } from './components/Icons';
 import MovieCard from './components/MovieCard';
 import ToggleSwitch from './components/ToggleSwitch';
@@ -27,6 +38,16 @@ export const ThemeContext = createContext<{ theme: Theme, toggleTheme: () => voi
 });
 
 type View = 'app' | 'profiles' | 'profileDetails';
+type AppView = 'user' | 'admin'; // New state to differentiate between user and admin views
+
+// --- Add Cast SDK types to global window object ---
+declare global {
+  interface Window {
+    cast: any;
+    chrome: any;
+    __onGCastApiAvailable: (isAvailable: boolean) => void;
+  }
+}
 
 // --- Profile Feature Sub-Pages ---
 
@@ -122,16 +143,146 @@ const DeviceSync: React.FC<{ profile: Profile; onBack: () => void; }> = ({ profi
 
 
 const App: React.FC = () => {
+  const [appView, setAppView] = useState<AppView>('user');
   const [activeTab, setActiveTab] = useState('Home');
+  const [activeCategory, setActiveCategory] = useState('All');
   const [activeSetting, setActiveSetting] = useState<string | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [theme, setTheme] = useState<Theme>('dark');
   const [view, setView] = useState<View>('app');
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [activeProfileFeature, setActiveProfileFeature] = useState<string | null>(null);
+  const [downloadedMovies, setDownloadedMovies] = useState<Movie[]>([]);
+  const [downloadQuality, setDownloadQuality] = useState<DownloadQuality>('Better');
+  const [autoDelete, setAutoDelete] = useState<boolean>(false);
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
+  const [isCasting, setIsCasting] = useState(false);
+  const [isCastAvailable, setIsCastAvailable] = useState(false);
+  const [isControllingCast, setIsControllingCast] = useState(false);
+  
+  // Check for /admin route on initial load
+  useEffect(() => {
+    if (window.location.pathname === '/admin') {
+      setAppView('admin');
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+        const storedDownloads = localStorage.getItem('downloadedMovies');
+        if (storedDownloads) setDownloadedMovies(JSON.parse(storedDownloads));
+
+        const storedQuality = localStorage.getItem('downloadQuality') as DownloadQuality;
+        if (storedQuality) setDownloadQuality(storedQuality);
+
+        const storedAutoDelete = localStorage.getItem('autoDelete');
+        if (storedAutoDelete) setAutoDelete(JSON.parse(storedAutoDelete));
+    } catch (error) {
+        console.error("Failed to parse settings from localStorage", error);
+    }
+  }, []);
+  
+  useEffect(() => {
+    const initializeCastApi = () => {
+      if (!window.cast || !window.cast.framework || !window.chrome.cast.media) {
+        console.error("Cast framework not available");
+        return;
+      }
+      const castContext = window.cast.framework.CastContext.getInstance();
+      castContext.setOptions({
+        receiverApplicationId: window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+        autoJoinPolicy: window.cast.framework.AutoJoinPolicy.ORIGIN_SCOPED,
+      });
+
+      const handleCastStateChange = (event: any) => {
+        setIsCastAvailable(event.castState !== window.cast.framework.CastState.NO_DEVICES_AVAILABLE);
+      };
+
+      const handleSessionStateChange = (event: any) => {
+         const sessionState = event.sessionState;
+         const isSessionActive = sessionState === window.cast.framework.SessionState.SESSION_STARTED;
+         setIsCasting(isSessionActive);
+         if (!isSessionActive) {
+            setIsControllingCast(false);
+         }
+      };
+
+      castContext.addEventListener(window.cast.framework.CastContextEventType.CAST_STATE_CHANGED, handleCastStateChange);
+      castContext.addEventListener(window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED, handleSessionStateChange);
+      
+      const castState = castContext.getCastState();
+      setIsCastAvailable(castState !== window.cast.framework.CastState.NO_DEVICES_AVAILABLE);
+
+      const session = castContext.getCurrentSession();
+      setIsCasting(!!session && session.getSessionState() === window.cast.framework.SessionState.SESSION_STARTED);
+
+      return () => {
+        castContext.removeEventListener(window.cast.framework.CastContextEventType.CAST_STATE_CHANGED, handleCastStateChange);
+        castContext.removeEventListener(window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED, handleSessionStateChange);
+      };
+    };
+    
+    window['__onGCastApiAvailable'] = (isAvailable: boolean) => {
+      if (isAvailable) {
+        initializeCastApi();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+      localStorage.setItem('downloadedMovies', JSON.stringify(downloadedMovies));
+  }, [downloadedMovies]);
+
+  useEffect(() => {
+      localStorage.setItem('downloadQuality', downloadQuality);
+  }, [downloadQuality]);
+
+  useEffect(() => {
+      localStorage.setItem('autoDelete', JSON.stringify(autoDelete));
+  }, [autoDelete]);
+
+  useEffect(() => {
+    if (autoDelete) {
+        const watchedMovieIds = CONTINUE_WATCHING
+            .filter(m => m.progress && m.progress >= 95)
+            .map(m => m.id);
+        
+        const remainingDownloads = downloadedMovies.filter(
+            downloadedMovie => !watchedMovieIds.includes(downloadedMovie.id)
+        );
+
+        if (remainingDownloads.length < downloadedMovies.length) {
+            setDownloadedMovies(remainingDownloads);
+        }
+    }
+  }, [autoDelete, downloadedMovies, activeTab]);
 
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
+  };
+  
+  const handleDownloadMovie = (movie: Movie) => {
+    setDownloadedMovies(prev => {
+        if (prev.some(m => m.id === movie.id)) {
+            return prev;
+        }
+        
+        let sizeMultiplier = 1;
+        if (downloadQuality === 'Good') sizeMultiplier = 0.5;
+        if (downloadQuality === 'Best') sizeMultiplier = 1.8;
+        
+        const downloadedMovie: Movie = {
+            ...movie,
+            downloadQuality: downloadQuality,
+            size: movie.baseSize ? parseFloat((movie.baseSize * sizeMultiplier).toFixed(2)) : 0.45,
+        };
+
+        return [...prev, downloadedMovie];
+    });
+  };
+
+  const handleRemoveDownload = (movieId: number) => {
+      setDownloadedMovies(prev => prev.filter(m => m.id !== movieId));
   };
 
   useEffect(() => {
@@ -181,6 +332,91 @@ const App: React.FC = () => {
     setActiveProfileFeature(null);
   };
 
+  const handlePlayMovie = () => {
+    if (!selectedMovie) return;
+    
+    if (isCasting) {
+      const castSession = window.cast.framework.CastContext.getInstance().getCurrentSession();
+      if (castSession) {
+        // Using a generic, publicly available video for demonstration
+        const mediaUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+        const mediaInfo = new window.chrome.cast.media.MediaInfo(mediaUrl, 'video/mp4');
+        mediaInfo.metadata = new window.chrome.cast.media.GenericMediaMetadata();
+        mediaInfo.metadata.metadataType = window.chrome.cast.media.MetadataType.GENERIC;
+        mediaInfo.metadata.title = selectedMovie.title;
+        mediaInfo.metadata.subtitle = selectedMovie.description;
+        mediaInfo.metadata.images = [{ url: selectedMovie.backdropUrl }];
+        
+        const request = new window.chrome.cast.media.LoadRequest(mediaInfo);
+        
+        castSession.loadMedia(request).then(
+          () => { 
+            console.log('Media loaded successfully on cast device.');
+            setIsControllingCast(true);
+          },
+          (errorCode: any) => { console.error('Error loading media on cast device: ' + errorCode); }
+        );
+      }
+    } else {
+      setIsPlayerOpen(true);
+    }
+  };
+  
+  const handleCastClick = () => {
+    if (!isCastAvailable) {
+      // Per Google UX guidelines, this button is disabled, so this code block
+      // should ideally not be reachable. This is a safeguard.
+      console.log("Cast button clicked, but no devices are available.");
+      return;
+    }
+
+    const castContext = window.cast.framework.CastContext.getInstance();
+    castContext.requestSession().catch((error: any) => {
+      // Log errors unless the user simply cancelled the dialog.
+      if (error !== window.chrome.cast.ErrorCode.CANCEL) {
+        console.error('Error requesting cast session:', error);
+      }
+    });
+  };
+
+  const handleClosePlayer = () => {
+    setIsPlayerOpen(false);
+  };
+
+  const handleNextMovie = () => {
+    if (!selectedMovie) return;
+    
+    const allMovies = [...PRIME_MOVIES, ...PRIME_ORIGINALS, ...CONTINUE_WATCHING];
+    const currentIndex = allMovies.findIndex(m => m.id === selectedMovie.id);
+    
+    if (currentIndex !== -1) {
+        const nextIndex = (currentIndex + 1) % allMovies.length;
+        setSelectedMovie(allMovies[nextIndex]);
+    }
+  };
+
+  const handleTabChange = (tab: string) => {
+    if (tab === 'Home' && activeTab === 'Home') {
+        setActiveCategory('All');
+    }
+    setActiveTab(tab);
+  };
+  
+  if (appView === 'admin') {
+    return (
+        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+            <AdminPage />
+        </ThemeContext.Provider>
+    );
+  }
+
+  if (isControllingCast && selectedMovie) {
+    return <CastPlayer movie={selectedMovie} onClose={() => setIsControllingCast(false)} />;
+  }
+
+  if (isPlayerOpen && selectedMovie) {
+    return <VideoPlayer movie={selectedMovie} onClose={handleClosePlayer} onNextEpisode={handleNextMovie} />;
+  }
 
   if (view === 'profiles') {
     return <Profiles profiles={PROFILES} onProfileSelect={handleProfileSelect} onBack={() => setView('app')} />;
@@ -208,6 +444,7 @@ const App: React.FC = () => {
       case 'theme': return <ThemeSettings />;
       case 'language': return <LanguageSettings />;
       case 'notifications': return <NotificationSettings />;
+      case 'downloads': return <DownloadSettings quality={downloadQuality} onQualityChange={setDownloadQuality} autoDelete={autoDelete} onAutoDeleteChange={setAutoDelete} />;
       case 'data': return <DataUsageSettings />;
       case 'privacy': return <PrivacySettings />;
       default: return <Settings onSettingClick={setActiveSetting} />;
@@ -216,7 +453,7 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     if (selectedMovie) {
-        return <MovieDetails movie={selectedMovie} onBack={handleBackFromDetails} />;
+        return <MovieDetails movie={selectedMovie} onBack={handleBackFromDetails} onDownload={handleDownloadMovie} downloadedMovies={downloadedMovies} onPlay={handlePlayMovie} />;
     }
     
     switch (activeTab) {
@@ -224,28 +461,40 @@ const App: React.FC = () => {
         return (
           <>
             <div className="sticky top-0 bg-[var(--background-color)] z-10 pt-2">
-              <CategoryNav />
+              <CategoryNav
+                categories={CATEGORIES}
+                activeCategory={activeCategory}
+                onCategoryChange={setActiveCategory}
+              />
             </div>
-            <HeroCarousel items={CAROUSEL_ITEMS} />
-            <ContentRow title="SAHAN FILMS™ movies" items={PRIME_MOVIES} wide={true} onMovieClick={handleMovieSelect} />
-            <ContentRow title="SAHAN FILMS™ Originals" items={PRIME_ORIGINALS} wide={false} onMovieClick={handleMovieSelect} />
-            <ContentRow title="Continue Watching" items={CONTINUE_WATCHING} wide={true} onMovieClick={handleMovieSelect} />
+            {activeCategory === 'All' ? (
+              <>
+                <HeroCarousel items={CAROUSEL_ITEMS} />
+                <ContentRow title="SAHAN FILMS™ movies" items={PRIME_MOVIES} wide={true} onMovieClick={handleMovieSelect} />
+                <ContentRow title="SAHAN FILMS™ Originals" items={PRIME_ORIGINALS} wide={false} onMovieClick={handleMovieSelect} />
+                <ContentRow title="Continue Watching" items={CONTINUE_WATCHING} wide={true} onMovieClick={handleMovieSelect} />
+              </>
+            ) : (
+              <CategoryPage category={activeCategory} onMovieClick={handleMovieSelect} />
+            )}
           </>
         );
       case 'Search':
         return <SearchResults />;
       case 'Settings':
         return renderSettingsContent();
-      case 'Films':
-      case 'Subscriptions':
       case 'Downloads':
-        return (
-          <div className="p-4 text-center text-[var(--text-color-secondary)] mt-8">
-            <p>Content for the '{activeTab}' tab is not yet available.</p>
-          </div>
-        );
+        return <Downloads movies={downloadedMovies} onRemove={handleRemoveDownload} onMovieClick={handleMovieSelect} />;
+      case 'Films':
+        return <FilmsPage onMovieClick={handleMovieSelect} />;
+      case 'Subscriptions':
+        return <SubscriptionsPage />;
       default:
-        return null;
+        return (
+            <div className="p-4 text-center text-[var(--text-color-secondary)] mt-8">
+              <p>Content for the '{activeTab}' tab is not yet available.</p>
+            </div>
+        );
     }
   };
 
@@ -263,7 +512,7 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="pt-6">
-            {!selectedMovie && view === 'app' &&
+            {!selectedMovie && view === 'app' && !isPlayerOpen &&
                 <Header 
                     isSearchActive={activeTab === 'Search'} 
                     onCancelSearch={handleCancelSearch}
@@ -272,13 +521,16 @@ const App: React.FC = () => {
                     onBackClick={handleBackClick}
                     activeSetting={activeSetting}
                     onProfileClick={handleProfileClick}
+                    isCastAvailable={isCastAvailable}
+                    isCasting={isCasting}
+                    onCastClick={handleCastClick}
                 />
             }
         </div>
         <main className={`flex-1 overflow-y-auto no-scrollbar ${!selectedMovie && 'pb-16'}`}>
           {renderContent()}
         </main>
-        {activeTab !== 'Settings' && !selectedMovie && view === 'app' && <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />}
+        {activeTab !== 'Settings' && !selectedMovie && view === 'app' && !isPlayerOpen && <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />}
       </div>
     </ThemeContext.Provider>
   );

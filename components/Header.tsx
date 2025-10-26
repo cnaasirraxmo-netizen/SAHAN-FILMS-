@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CastIcon, PrimeLogo, SearchIcon, SettingsIcon, ChevronLeftIcon } from './Icons';
 
@@ -9,6 +10,9 @@ interface HeaderProps {
     onBackClick: () => void;
     activeSetting: string | null;
     onProfileClick: () => void;
+    isCastAvailable?: boolean;
+    isCasting?: boolean;
+    onCastClick?: () => void;
 }
 
 const settingTitles: { [key: string]: string } = {
@@ -19,7 +23,7 @@ const settingTitles: { [key: string]: string } = {
   privacy: 'Privacy & Security',
 };
 
-const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSettingsActive, onSettingsClick, onBackClick, activeSetting, onProfileClick }) => {
+const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSettingsActive, onSettingsClick, onBackClick, activeSetting, onProfileClick, isCastAvailable, isCasting, onCastClick }) => {
   if (isSearchActive) {
     return (
         <header className="px-4 py-2 flex items-center bg-[var(--background-color)] border-b border-[var(--border-color)]">
@@ -56,7 +60,9 @@ const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSetti
     <header className="px-4 py-2 flex justify-between items-center bg-[var(--background-color)]">
       <PrimeLogo className="h-6" />
       <div className="flex items-center space-x-4">
-        <CastIcon className="h-6 w-6 text-[var(--text-color)] opacity-90" />
+        <button onClick={onCastClick} aria-label="Cast to device" disabled={!isCastAvailable}>
+            <CastIcon className={`h-6 w-6 transition-colors ${isCasting ? 'text-sky-400' : isCastAvailable ? 'text-[var(--text-color)] opacity-90' : 'text-gray-500 opacity-50 cursor-not-allowed'}`} />
+        </button>
         <button onClick={onSettingsClick} aria-label="Open Settings">
             <SettingsIcon className="h-6 w-6 text-[var(--text-color)] opacity-90" />
         </button>
