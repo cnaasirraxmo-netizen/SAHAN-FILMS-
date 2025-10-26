@@ -1,0 +1,21 @@
+{
+  "name": "SAHAN FILMS ™",
+  "short_name": "SahanFilms",
+  "description": "A feature-rich clone of the Amazon Prime Video mobile application, built with React and Tailwind CSS, now with full offline PWA support.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0F171E",
+  "theme_color": "#0F171E",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
