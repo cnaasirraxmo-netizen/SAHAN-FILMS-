@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import React, { useState, useEffect, createContext } from 'react';
 import { auth } from './firebase';
 // FIX: Import firebase compat to resolve module export errors for auth functions.
@@ -174,6 +169,20 @@ const App: React.FC = () => {
   const [isCasting, setIsCasting] = useState(false);
   const [isCastAvailable, setIsCastAvailable] = useState(false);
   const [isControllingCast, setIsControllingCast] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     // FIX: Use compat API for onAuthStateChanged and firebase.User type.
@@ -231,10 +240,13 @@ const App: React.FC = () => {
   
   useEffect(() => {
     const initializeCastApi = () => {
-      if (!window.cast || !window.cast.framework || !window.chrome.cast.media) {
-        console.error("Cast framework not available");
+      // Robust check for Cast SDK availability to prevent race conditions.
+      if (!window.cast || !window.cast.framework || !window.cast.framework.CastContext || !window.cast.framework.AutoJoinPolicy || !window.chrome || !window.chrome.cast || !window.chrome.cast.media) {
+        console.warn('Cast SDK not fully loaded yet, retrying...');
+        setTimeout(initializeCastApi, 100);
         return;
       }
+      
       const castContext = window.cast.framework.CastContext.getInstance();
       castContext.setOptions({
         receiverApplicationId: window.chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
@@ -410,6 +422,14 @@ const App: React.FC = () => {
   };
   
   const handleDownloadMovie = (movie: Movie) => {
+    const videoUrl = movie.videoUrl_480p; // Default to 480p for now
+    if (navigator.serviceWorker.controller && videoUrl) {
+        navigator.serviceWorker.controller.postMessage({
+            type: 'CACHE_VIDEO',
+            url: videoUrl
+        });
+    }
+
     setDownloadedMovies(prev => {
         if (prev.some(m => m.id === movie.id)) {
             return prev;
@@ -429,8 +449,15 @@ const App: React.FC = () => {
     });
   };
 
-  const handleRemoveDownload = (movieId: number) => {
-      setDownloadedMovies(prev => prev.filter(m => m.id !== movieId));
+  const handleRemoveDownload = (movie: Movie) => {
+      const videoUrl = movie.videoUrl_480p;
+      if (navigator.serviceWorker.controller && videoUrl) {
+        navigator.serviceWorker.controller.postMessage({
+            type: 'DELETE_VIDEO',
+            url: videoUrl
+        });
+    }
+    setDownloadedMovies(prev => prev.filter(m => m.id !== movie.id));
   };
   
   useEffect(() => {
@@ -673,6 +700,7 @@ const App: React.FC = () => {
                     isCasting={isCasting}
                     onCastClick={handleCastClick}
                     currentUser={currentUser}
+                    isOnline={isOnline}
                 />
             }
         </div>

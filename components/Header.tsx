@@ -14,6 +14,7 @@ interface HeaderProps {
     isCasting?: boolean;
     onCastClick?: () => void;
     currentUser: User | null;
+    isOnline: boolean;
 }
 
 const settingTitles: { [key: string]: string } = {
@@ -25,7 +26,15 @@ const settingTitles: { [key: string]: string } = {
   downloads: 'Download Settings',
 };
 
-const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSettingsActive, onSettingsClick, onBackClick, activeSetting, onProfileClick, isCastAvailable, isCasting, onCastClick, currentUser }) => {
+const OnlineStatusIndicator: React.FC<{ isOnline: boolean }> = ({ isOnline }) => (
+    <div className="flex items-center space-x-2" title={isOnline ? 'You are online' : 'You are offline'}>
+        <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+        <span className="text-xs text-gray-400">{isOnline ? 'Online' : 'Offline'}</span>
+    </div>
+);
+
+
+const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSettingsActive, onSettingsClick, onBackClick, activeSetting, onProfileClick, isCastAvailable, isCasting, onCastClick, currentUser, isOnline }) => {
   if (isSearchActive) {
     return (
         <header className="px-4 py-2 flex items-center bg-[var(--background-color)] border-b border-[var(--border-color)]">
@@ -60,7 +69,10 @@ const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSetti
     
   return (
     <header className="px-4 py-2 flex justify-between items-center bg-[var(--background-color)]">
-      <PrimeLogo className="h-6" />
+      <div className="flex items-center space-x-3">
+        <PrimeLogo className="h-6" />
+        <OnlineStatusIndicator isOnline={isOnline} />
+      </div>
       <div className="flex items-center space-x-4">
         <button onClick={onCastClick} aria-label="Cast to device" disabled={!isCastAvailable}>
             <CastIcon className={`h-6 w-6 transition-colors ${isCasting ? 'text-sky-400' : isCastAvailable ? 'text-[var(--text-color)] opacity-90' : 'text-gray-500 opacity-50 cursor-not-allowed'}`} />

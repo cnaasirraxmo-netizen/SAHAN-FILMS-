@@ -24,12 +24,8 @@ const vttContent = `WEBVTT
 - Enjoy the show!
 `;
 
-const videoSources = {
-    '4K': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    '1080p': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    '720p': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    '480p': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-};
+type VideoQuality = '480p' | '720p' | '1080p';
+
 const playbackRates = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
 const formatTime = (timeInSeconds: number) => {
@@ -56,7 +52,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<'main' | 'quality' | 'speed'>('main');
   const [activeSubtitleTrack, setActiveSubtitleTrack] = useState<'off' | 'en'>('off');
-  const [videoQuality, setVideoQuality] = useState<keyof typeof videoSources>('1080p');
+  const [videoQuality, setVideoQuality] = useState<VideoQuality>('720p');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPip, setIsPip] = useState(false);
   const [hasEnded, setHasEnded] = useState(false);
@@ -65,6 +61,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
   const [brightness, setBrightness] = useState(1);
   const [showVolumeIndicator, setShowVolumeIndicator] = useState(false);
   const [showBrightnessIndicator, setShowBrightnessIndicator] = useState(false);
+
+  const videoSources: Record<VideoQuality, string | undefined> = {
+    '1080p': movie.videoUrl_1080p,
+    '720p': movie.videoUrl_720p,
+    '480p': movie.videoUrl_480p,
+  };
+  const availableQualities = Object.keys(videoSources).filter(q => videoSources[q as VideoQuality]) as VideoQuality[];
+
+  const currentVideoSrc = videoSources[videoQuality] || videoSources['480p'] || '';
+
 
   useEffect(() => {
     const vttBlob = new Blob([vttContent], { type: 'text/vtt' });
@@ -175,8 +181,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
     setIsSettingsOpen(false);
   };
   
-  const handleQualityChange = (quality: keyof typeof videoSources) => {
-    setVideoQuality(quality);
+  const handleQualityChange = (quality: VideoQuality) => {
+    if (videoRef.current) {
+        const currentPlayTime = videoRef.current.currentTime;
+        setVideoQuality(quality);
+        // We need to wait for the src to update and then seek
+        setTimeout(() => {
+            if (videoRef.current) {
+                videoRef.current.currentTime = currentPlayTime;
+                if(isPlaying) videoRef.current.play();
+            }
+        }, 100);
+    }
     setIsSettingsOpen(false);
   };
   
@@ -280,8 +296,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
       {settingsTab === 'quality' && (
         <div>
           <button onClick={() => setSettingsTab('main')} className="w-full text-left p-2 text-gray-400">&lt; Quality</button>
-          {Object.keys(videoSources).map((q) => (
-            <button key={q} onClick={() => handleQualityChange(q as keyof typeof videoSources)} className="w-full text-left p-2 hover:bg-white/10 rounded flex items-center">
+          {availableQualities.map((q) => (
+            <button key={q} onClick={() => handleQualityChange(q)} className="w-full text-left p-2 hover:bg-white/10 rounded flex items-center">
               {q} {videoQuality === q && <CheckIcon className="w-4 h-4 ml-auto text-sky-400" />}
             </button>
           ))}
@@ -311,7 +327,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
     >
       <video
         ref={videoRef}
-        src={videoSources[videoQuality]}
+        key={currentVideoSrc} // Force re-render on src change
+        src={currentVideoSrc}
         autoPlay
         className="w-full h-full object-contain"
         style={{ filter: `brightness(${brightness})`}}
@@ -332,70 +349,72 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
         </div>}
       
       {/* Controls Overlay */}
-      <div className={`absolute inset-0 transition-opacity duration-300 ${areControlsVisible ? 'opacity-100' : 'opacity-0'} bg-gradient-to-t from-black/70 via-transparent to-black/70`}>
-        {/* Top Controls */}
-        <div className="absolute top-0 left-0 right-0 p-4 flex items-center">
-          <button onClick={onClose}><ChevronLeftIcon className="w-8 h-8" /></button>
-          <h2 className="text-xl font-bold ml-4 truncate">{movie.title}</h2>
-        </div>
+      <div className={`absolute inset-0 transition-opacity duration-300 ${areControlsVisible ? 'opacity-100' : 'opacity-0'} bg-gradient-to-t from-black/70 via-transparent to-black/70 pointer-events-none`}>
+        <div className="absolute inset-0 pointer-events-auto">
+            {/* Top Controls */}
+            <div className="absolute top-0 left-0 right-0 p-4 flex items-center">
+              <button onClick={onClose}><ChevronLeftIcon className="w-8 h-8" /></button>
+              <h2 className="text-xl font-bold ml-4 truncate">{movie.title}</h2>
+            </div>
 
-        {/* Middle Controls */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center space-x-12">
-          <button onClick={() => handleSkip(-10)}><Replay10Icon className="w-10 h-10" /></button>
-          <button onClick={togglePlayPause}>
-            {isPlaying ? <PauseIcon className="w-16 h-16" /> : <PlayIcon className="w-16 h-16" />}
-          </button>
-          <button onClick={() => handleSkip(10)}><Forward10Icon className="w-10 h-10" /></button>
-        </div>
+            {/* Middle Controls */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center space-x-12">
+              <button onClick={() => handleSkip(-10)}><Replay10Icon className="w-10 h-10" /></button>
+              <button onClick={togglePlayPause}>
+                {isPlaying ? <PauseIcon className="w-16 h-16" /> : <PlayIcon className="w-16 h-16" />}
+              </button>
+              <button onClick={() => handleSkip(10)}><Forward10Icon className="w-10 h-10" /></button>
+            </div>
 
-        {/* Bottom Controls */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm">{formatTime(currentTime)}</span>
-            <input
-              type="range"
-              min="0"
-              max={duration}
-              value={currentTime}
-              onChange={handleProgressChange}
-              className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer"
-              style={{
-                  background: `linear-gradient(to right, #38bdf8 ${ (currentTime / duration) * 100 }%, #fff3 ${ (currentTime / duration) * 100 }%)`
-              }}
-            />
-            <span className="text-sm">{formatTime(duration)}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-                <button onClick={toggleMute}>{isMuted || volume === 0 ? <VolumeOffIcon className="w-6 h-6" /> : <VolumeUpIcon className="w-6 h-6" />}</button>
+            {/* Bottom Controls */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm">{formatTime(currentTime)}</span>
                 <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={isMuted ? 0 : volume}
-                    onChange={handleVolumeChange}
-                    className="w-24 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer"
-                    style={{
-                        background: `linear-gradient(to right, #fff ${ (isMuted ? 0 : volume) * 100 }%, #fff3 ${ (isMuted ? 0 : volume) * 100 }%)`
-                    }}
+                  type="range"
+                  min="0"
+                  max={duration || 1}
+                  value={currentTime}
+                  onChange={handleProgressChange}
+                  className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer"
+                  style={{
+                      background: `linear-gradient(to right, #38bdf8 ${ (currentTime / (duration || 1)) * 100 }%, #fff3 ${ (currentTime / (duration || 1)) * 100 }%)`
+                  }}
                 />
+                <span className="text-sm">{formatTime(duration || 0)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                    <button onClick={toggleMute}>{isMuted || volume === 0 ? <VolumeOffIcon className="w-6 h-6" /> : <VolumeUpIcon className="w-6 h-6" />}</button>
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={isMuted ? 0 : volume}
+                        onChange={handleVolumeChange}
+                        className="w-24 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer"
+                        style={{
+                            background: `linear-gradient(to right, #fff ${ (isMuted ? 0 : volume) * 100 }%, #fff3 ${ (isMuted ? 0 : volume) * 100 }%)`
+                        }}
+                    />
+                </div>
+                <div className="flex items-center space-x-4">
+                    <button onClick={(e) => { e.stopPropagation(); setIsSettingsOpen(v => !v); setSettingsTab('main'); }}><SettingsIcon className="w-6 h-6" /></button>
+                    {document.pictureInPictureEnabled && <button onClick={togglePiP}><PictureInPictureIcon className="w-6 h-6" /></button>}
+                    <button onClick={toggleFullscreen}>
+                        {isFullscreen ? <FullscreenExitIcon className="w-6 h-6" /> : <FullscreenEnterIcon className="w-6 h-6" />}
+                    </button>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center space-x-4">
-                <button onClick={(e) => { e.stopPropagation(); setIsSettingsOpen(v => !v); setSettingsTab('main'); }}><SettingsIcon className="w-6 h-6" /></button>
-                {document.pictureInPictureEnabled && <button onClick={togglePiP}><PictureInPictureIcon className="w-6 h-6" /></button>}
-                <button onClick={toggleFullscreen}>
-                    {isFullscreen ? <FullscreenExitIcon className="w-6 h-6" /> : <FullscreenEnterIcon className="w-6 h-6" />}
-                </button>
-            </div>
-          </div>
-        </div>
 
-        {isSettingsOpen && renderSettings()}
+            {isSettingsOpen && renderSettings()}
+        </div>
       </div>
       
       {hasEnded && (
-        <div className="absolute inset-0 bg-black/80 flex items-center justify-center space-x-16">
+        <div className="absolute inset-0 bg-black/80 flex items-center justify-center space-x-16 pointer-events-auto">
             <button onClick={handleReplay} className="flex flex-col items-center space-y-2 text-gray-300 hover:text-white">
                 <ReplayIcon className="w-16 h-16"/>
                 <span>Replay</span>

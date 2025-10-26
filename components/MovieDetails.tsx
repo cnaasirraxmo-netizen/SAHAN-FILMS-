@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Movie } from '../types';
 import { ChevronLeftIcon, PlayIcon, DownloadIcon, AddToWatchlistIcon, CheckIcon } from './Icons';
 import { ThemeContext } from '../App';
@@ -13,6 +13,7 @@ interface MovieDetailsProps {
 
 const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, downloadedMovies, onPlay }) => {
     const { theme } = useContext(ThemeContext);
+    const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
     
     const gradientClass = theme === 'dark'
         ? 'from-black/80 via-black/50 to-transparent'
@@ -20,16 +21,70 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, 
 
     const isDownloaded = downloadedMovies.some(m => m.id === movie.id);
 
-    const ActionButton: React.FC<{ Icon: React.FC<{className?: string}>, label: string, onClick?: () => void, active?: boolean }> = ({ Icon, label, onClick, active }) => (
-        <button
-            onClick={onClick}
-            disabled={active}
-            className={`flex flex-col items-center space-y-1 text-xs ${active ? 'text-sky-400' : 'text-[var(--text-color-secondary)] hover:text-[var(--text-color)]'} disabled:cursor-default w-24`}
-        >
-            <Icon className="w-6 h-6" />
-            <span>{label}</span>
-        </button>
-    );
+    const handleDownloadClick = () => {
+        if (isDownloaded || downloadProgress !== null) return;
+
+        setDownloadProgress(0);
+        
+        // Simulate download progress
+        const interval = setInterval(() => {
+            setDownloadProgress(prev => {
+                if (prev === null || prev >= 100) {
+                    clearInterval(interval);
+                    onDownload(movie);
+                    setDownloadProgress(null);
+                    return null;
+                }
+                return Math.min(prev + 10, 100);
+            });
+        }, 200);
+    };
+
+    const getDownloadButtonContent = () => {
+        if (isDownloaded) {
+            return (
+                <>
+                    <CheckIcon className="w-6 h-6" />
+                    <span>Downloaded</span>
+                </>
+            );
+        }
+        if (downloadProgress !== null) {
+            return (
+                <>
+                    <div className="w-6 h-6 relative">
+                        <svg className="w-full h-full" viewBox="0 0 36 36">
+                            <path
+                                d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="#4a5568"
+                                strokeWidth="4"
+                            />
+                            <path
+                                d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="#38bdf8"
+                                strokeWidth="4"
+                                strokeDasharray={`${downloadProgress}, 100`}
+                            />
+                        </svg>
+                    </div>
+                    <span>Downloading...</span>
+                </>
+            );
+        }
+        return (
+            <>
+                <DownloadIcon className="w-6 h-6" />
+                <span>Download</span>
+            </>
+        );
+    };
+
 
   return (
     <div className="bg-[var(--background-color-secondary)] min-h-full">
@@ -54,18 +109,18 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, 
           <span className="border border-gray-500/80 px-1.5 py-0.5 rounded text-xs font-semibold tracking-wide">{movie.rating}</span>
         </div>
         
-        <button onClick={onPlay} className="w-full bg-white text-black font-bold py-3 rounded-md my-4 flex items-center justify-center space-x-2">
-            <PlayIcon className="w-6 h-6" />
-            <span>Play</span>
-        </button>
-
-        <div className="flex justify-center items-start my-4">
-            <ActionButton 
-                Icon={isDownloaded ? CheckIcon : DownloadIcon} 
-                label={isDownloaded ? "Downloaded" : "Download"} 
-                onClick={() => onDownload(movie)}
-                active={isDownloaded}
-            />
+        <div className="flex items-center space-x-2 my-4">
+            <button onClick={onPlay} className="flex-grow bg-white text-black font-bold py-3 rounded-md flex items-center justify-center space-x-2">
+                <PlayIcon className="w-6 h-6" />
+                <span>Play</span>
+            </button>
+            <button
+                onClick={handleDownloadClick}
+                disabled={isDownloaded || downloadProgress !== null}
+                className="flex-shrink-0 bg-gray-600/50 text-white font-bold py-3 rounded-md flex items-center justify-center space-x-2 px-4 disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+                {getDownloadButtonContent()}
+            </button>
         </div>
 
         <p className="text-[var(--text-color)] text-base leading-relaxed my-4">

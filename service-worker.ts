@@ -4,9 +4,10 @@
 // FIX: Cast self to the correct ServiceWorkerGlobalScope type to fix errors where properties were not found on 'unknown'.
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
-const STATIC_CACHE_NAME = 'sahan-films-static-v1';
-const DYNAMIC_CACHE_NAME = 'sahan-films-dynamic-v1';
-const IMAGE_CACHE_NAME = 'sahan-films-images-v1';
+const STATIC_CACHE_NAME = 'sahan-films-static-v2';
+const DYNAMIC_CACHE_NAME = 'sahan-films-dynamic-v2';
+const IMAGE_CACHE_NAME = 'sahan-films-images-v2';
+const VIDEO_CACHE_NAME = 'sahan-films-videos-v2';
 
 // App Shell: All the files that are needed for the app to work offline
 const APP_SHELL_URLS = [
@@ -17,6 +18,7 @@ const APP_SHELL_URLS = [
   '/types.ts',
   '/constants.ts',
   '/firebase.ts',
+  '/assets/video.ts',
   // components
   '/components/Auth.tsx',
   '/components/BottomNav.tsx',
@@ -72,7 +74,7 @@ sw.addEventListener('install', (event: ExtendableEvent) => {
 
 // Activate event: Clean up old caches
 sw.addEventListener('activate', (event: ExtendableEvent) => {
-  const cacheWhitelist = [STATIC_CACHE_NAME, DYNAMIC_CACHE_NAME, IMAGE_CACHE_NAME];
+  const cacheWhitelist = [STATIC_CACHE_NAME, DYNAMIC_CACHE_NAME, IMAGE_CACHE_NAME, VIDEO_CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -94,19 +96,31 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
     const { request } = event;
     const url = new URL(request.url);
 
+    // Strategy for local videos (served via data URI, but we'll use a cache-first approach for paths)
+    if (request.url.includes('/assets/videos/')) {
+        event.respondWith(
+            caches.open(VIDEO_CACHE_NAME).then(async (cache) => {
+                const cachedResponse = await cache.match(request);
+                if (cachedResponse) return cachedResponse;
+                
+                const networkResponse = await fetch(request);
+                cache.put(request, networkResponse.clone());
+                return networkResponse;
+            })
+        );
+        return;
+    }
+
     // Strategy for navigation requests (handle SPA routing and offline)
     if (request.mode === 'navigate') {
         event.respondWith(
             (async () => {
                 try {
-                    // Try the network first
                     const networkResponse = await fetch(request);
                     return networkResponse;
                 } catch (error) {
-                    // If the network fails, serve the cached index.html for any SPA route
                     console.log('Fetch failed for navigation; returning cached app shell.', error);
                     const cache = await caches.open(STATIC_CACHE_NAME);
-                    // The main entry point for the SPA
                     const cachedResponse = await cache.match('/index.html');
                     return cachedResponse!;
                 }
@@ -115,8 +129,7 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
         return;
     }
 
-    // Strategy for non-navigation requests (images, APIs, etc.)
-    // Stale-While-Revalidate for images
+    // Strategy for images: Stale-While-Revalidate
     if (url.hostname === 'picsum.photos') {
         event.respondWith(
             caches.open(IMAGE_CACHE_NAME).then(async (cache) => {
@@ -131,13 +144,11 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
         return;
     }
 
-    // Cache-first for other assets (app shell, CDNs), with network fallback
+    // Strategy for app shell and other assets: Cache-first, then network
     event.respondWith(
         caches.match(request).then((response) => {
             return response || fetch(request).then(fetchRes => {
-                // Cache the new resource in the dynamic cache
                 return caches.open(DYNAMIC_CACHE_NAME).then(cache => {
-                    // Don't cache Firestore requests as it has its own offline persistence
                     if (!url.href.includes('firestore.googleapis.com')) {
                        cache.put(request, fetchRes.clone());
                     }
@@ -148,86 +159,87 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
     );
 });
 
+// Message listener for commands from the main app
+// FIX: Changed event type from MessageEvent to ExtendableMessageEvent to access waitUntil.
+sw.addEventListener('message', (event: ExtendableMessageEvent) => {
+    if (event.data && event.data.type === 'CACHE_VIDEO') {
+        const videoUrl = event.data.url;
+        event.waitUntil(
+            caches.open(VIDEO_CACHE_NAME).then(cache => {
+                console.log('Service Worker: Caching video:', videoUrl);
+                return cache.add(videoUrl);
+            })
+        );
+    }
+    if (event.data && event.data.type === 'DELETE_VIDEO') {
+        const videoUrl = event.data.url;
+         event.waitUntil(
+            caches.open(VIDEO_CACHE_NAME).then(cache => {
+                console.log('Service Worker: Deleting video:', videoUrl);
+                return cache.delete(videoUrl);
+            })
+        );
+    }
+    if (event.data && event.data.type === 'CLEAR_VIDEO_CACHE') {
+        event.waitUntil(
+            caches.delete(VIDEO_CACHE_NAME).then(() => {
+                console.log('Service Worker: Video cache cleared.');
+            })
+        );
+    }
+});
+
 
 // --- PUSH NOTIFICATIONS ---
-// Listen for push events from a server
 sw.addEventListener('push', (event: PushEvent) => {
   const data = event.data ? event.data.json() : { title: 'SAHAN FILMS ™', body: 'A new movie has been added!', icon: '/icons/icon-192x192.png' };
-
   const options = {
     body: data.body,
     icon: data.icon || '/icons/icon-192x192.png',
-    badge: '/icons/icon-192x192.png' // A badge for the notification bar on mobile
+    badge: '/icons/icon-192x192.png'
   };
-
-  event.waitUntil(
-    sw.registration.showNotification(data.title, options)
-  );
+  event.waitUntil(sw.registration.showNotification(data.title, options));
 });
 
-// Listen for notification clicks
 sw.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close();
-
   event.waitUntil(
-    // FIX: Use 'self.clients' to access the Clients interface.
     sw.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // If a window for the app is already open, focus it
       for (const client of clientList) {
         if (client.url === '/' && 'focus' in client) {
           return client.focus();
         }
       }
-      // Otherwise, open a new window
-      // FIX: Use 'self.clients' to access the Clients interface.
       if (sw.clients.openWindow) {
-        // FIX: Use 'self.clients' to access the Clients interface.
         return sw.clients.openWindow('/');
       }
     })
   );
 });
 
-
 // --- BACKGROUND SYNC ---
-// Listen for one-off sync events, triggered when connection is restored
-// FIX: Changed SyncEvent to 'any' to resolve type error for this experimental API.
 sw.addEventListener('sync', (event: any) => {
   if (event.tag === 'my-background-sync') {
-    console.log('Service Worker: Background sync event received.');
     event.waitUntil(
-      // Example: Send queued form data or analytics when connection is restored.
       new Promise<void>(resolve => {
-        console.log("Simulating background sync task (e.g., sending queued data)...");
-        setTimeout(resolve, 2000); // Simulate network task
+        console.log("Simulating background sync task...");
+        setTimeout(resolve, 2000);
       }).then(() => {
-        console.log("Background sync task complete.");
-        sw.registration.showNotification('Sync Complete', {
-          body: 'Your queued data has been successfully synced.'
-        });
+        sw.registration.showNotification('Sync Complete', { body: 'Your queued data has been successfully synced.' });
       })
     );
   }
 });
 
-
 // --- PERIODIC SYNC ---
-// Listen for periodic sync events to fetch content proactively
-// FIX: Changed PeriodicSyncEvent to 'any' to resolve type error for this experimental API.
 sw.addEventListener('periodicsync', (event: any) => {
   if (event.tag === 'update-content-periodically') {
-    console.log('Service Worker: Periodic sync event received.');
     event.waitUntil(
-      // Example: Fetch latest movie data and update cache.
       new Promise<void>(resolve => {
         console.log("Simulating periodic content update...");
-        // In a real app, you would fetch from the network and update caches here.
         setTimeout(resolve, 3000);
       }).then(() => {
-         console.log("Periodic content update complete.");
-         sw.registration.showNotification('Content Updated', {
-           body: 'New movies and shows are now available offline.'
-         });
+         sw.registration.showNotification('Content Updated', { body: 'New movies and shows are now available offline.' });
       })
     );
   }

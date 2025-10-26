@@ -13,6 +13,10 @@ export interface Movie {
   baseSize?: number; // Base size in GB for 'Better' quality
   downloadQuality?: DownloadQuality;
   size?: number; // Actual downloaded size in GB
+  // Paths for offline video files
+  videoUrl_480p?: string;
+  videoUrl_720p?: string;
+  videoUrl_1080p?: string;
 }
 
 export interface CarouselItem {
