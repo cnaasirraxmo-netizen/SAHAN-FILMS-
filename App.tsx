@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect, createContext } from 'react';
+
+import React, { useState, useEffect, createContext, useCallback } from 'react';
 import { auth } from './firebase';
 // FIX: Import firebase compat to resolve module export errors for auth functions.
 import firebase from 'firebase/compat/app';
@@ -149,6 +150,14 @@ const DeviceSync: React.FC<{ profile: Profile; onBack: () => void; }> = ({ profi
   );
 };
 
+const debounce = <F extends (...args: any[]) => any>(func: F, waitFor: number) => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    return (...args: Parameters<F>) => {
+        if (timeout !== null) clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), waitFor);
+    };
+};
+
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -170,6 +179,61 @@ const App: React.FC = () => {
   const [isCastAvailable, setIsCastAvailable] = useState(false);
   const [isControllingCast, setIsControllingCast] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Movie[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
+  const searchMovies = useCallback(async (query: string) => {
+    const API_KEY = '1d44af015449e83f4394af349d414c64';
+    const API_URL = 'https://api.themoviedb.org/3/search/movie';
+
+    if (query.trim() === '') {
+      setSearchResults([]);
+      setSearchError(null);
+      return;
+    }
+
+    setSearchLoading(true);
+    setSearchError(null);
+
+    try {
+      const response = await fetch(`${API_URL}?api_key=${API_KEY}&query=${encodeURIComponent(query)}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.status_message || 'Failed to fetch movies.');
+      }
+      const data = await response.json();
+      
+      const mappedResults: Movie[] = data.results
+        .filter((movie: any) => movie.poster_path && movie.backdrop_path)
+        .map((movie: any) => ({
+          id: movie.id,
+          title: movie.title,
+          description: movie.overview,
+          posterUrl: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+          backdropUrl: `https://image.tmdb.org/t/p/w500${movie.backdrop_path}`,
+          year: movie.release_date ? parseInt(movie.release_date.substring(0, 4)) : 0,
+          rating: movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A',
+          duration: '', // Duration is not available in search results.
+        }));
+
+      setSearchResults(mappedResults);
+    } catch (err: any) {
+      setSearchError(err.message);
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const debouncedSearch = debounce(searchMovies, 500);
+    if (activeTab === 'Search') {
+        debouncedSearch(searchQuery);
+    }
+  }, [searchQuery, searchMovies, activeTab]);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -476,6 +540,9 @@ const App: React.FC = () => {
 
   const handleCancelSearch = () => {
     setActiveTab('Home');
+    setSearchQuery('');
+    setSearchResults([]);
+    setSearchError(null);
   };
 
   const handleSettingsClick = () => {
@@ -656,7 +723,13 @@ const App: React.FC = () => {
           </>
         );
       case 'Search':
-        return <SearchResults />;
+        return <SearchResults 
+            results={searchResults}
+            loading={searchLoading}
+            error={searchError}
+            query={searchQuery}
+            onMovieClick={handleMovieSelect}
+        />;
       case 'Settings':
         return renderSettingsContent();
       case 'Downloads':
@@ -691,6 +764,8 @@ const App: React.FC = () => {
                 <Header 
                     isSearchActive={activeTab === 'Search'} 
                     onCancelSearch={handleCancelSearch}
+                    searchQuery={searchQuery}
+                    onSearchQueryChange={setSearchQuery}
                     isSettingsActive={activeTab === 'Settings'}
                     onSettingsClick={handleSettingsClick}
                     onBackClick={handleBackClick}

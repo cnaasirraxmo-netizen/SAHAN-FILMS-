@@ -15,6 +15,8 @@ interface HeaderProps {
     onCastClick?: () => void;
     currentUser: User | null;
     isOnline: boolean;
+    searchQuery?: string;
+    onSearchQueryChange?: (query: string) => void;
 }
 
 const settingTitles: { [key: string]: string } = {
@@ -34,7 +36,7 @@ const OnlineStatusIndicator: React.FC<{ isOnline: boolean }> = ({ isOnline }) =>
 );
 
 
-const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSettingsActive, onSettingsClick, onBackClick, activeSetting, onProfileClick, isCastAvailable, isCasting, onCastClick, currentUser, isOnline }) => {
+const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSettingsActive, onSettingsClick, onBackClick, activeSetting, onProfileClick, isCastAvailable, isCasting, onCastClick, currentUser, isOnline, searchQuery, onSearchQueryChange }) => {
   if (isSearchActive) {
     return (
         <header className="px-4 py-2 flex items-center bg-[var(--background-color)] border-b border-[var(--border-color)]">
@@ -45,6 +47,8 @@ const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSetti
                     placeholder="Search movies, TV shows..."
                     className="w-full bg-transparent text-[var(--text-color)] placeholder-[var(--text-color-secondary)] focus:outline-none"
                     autoFocus
+                    value={searchQuery}
+                    onChange={(e) => onSearchQueryChange?.(e.target.value)}
                 />
             </div>
             <button onClick={onCancelSearch} className="ml-4 text-[var(--text-color)] text-sm whitespace-nowrap">
