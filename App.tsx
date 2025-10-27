@@ -26,7 +26,7 @@ import VideoPlayer from './components/VideoPlayer';
 import CastPlayer from './components/CastPlayer';
 import CategoryPage from './components/CategoryPage';
 import FilmsPage from './components/FilmsPage';
-import KidsPage from './components/KidsPage';
+import NewsPage from './components/NewsPage';
 import AdminPage from './components/AdminPage';
 import SplashScreen from './components/SplashScreen';
 import Auth from './components/Auth';
@@ -736,8 +736,8 @@ const App: React.FC = () => {
         return <Downloads movies={downloadedMovies} onRemove={handleRemoveDownload} onMovieClick={handleMovieSelect} />;
       case 'Films':
         return <FilmsPage onMovieClick={handleMovieSelect} />;
-      case 'Kids':
-        return <KidsPage onMovieClick={handleMovieSelect} />;
+      case 'News':
+        return <NewsPage onMovieClick={handleMovieSelect} />;
       default:
         return (
             <div className="p-4 text-center text-[var(--text-color-secondary)] mt-8">
