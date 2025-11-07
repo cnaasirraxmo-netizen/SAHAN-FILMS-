@@ -1,5 +1,5 @@
 import React from 'react';
-import { HomeIcon, DownloadIcon, SearchIcon, TvIcon } from './Icons';
+import { HomeIcon, DownloadIcon, SearchIcon, TvIcon, UserIcon } from './Icons';
 
 interface NavItemProps {
   Icon: React.ElementType;
@@ -11,7 +11,7 @@ interface NavItemProps {
 const NavItem: React.FC<NavItemProps> = ({ Icon, label, active = false, onClick }) => {
   const textColor = active ? 'text-sky-400' : 'text-[var(--text-color-secondary)]';
   return (
-    <button onClick={onClick} className="flex flex-col items-center justify-center space-y-1 w-1/4 h-full">
+    <button onClick={onClick} className="flex flex-col items-center justify-center space-y-1 w-1/5 h-full">
       <Icon className={`h-6 w-6 ${textColor}`} />
       <span className={`text-xs ${textColor}`}>{label}</span>
     </button>
@@ -29,6 +29,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
     { name: 'Anime', icon: TvIcon },
     { name: 'Downloads', icon: DownloadIcon },
     { name: 'Search', icon: SearchIcon },
+    { name: 'Me', icon: UserIcon },
   ];
 
   return (

@@ -50,6 +50,7 @@ const APP_SHELL_URLS = [
   '/components/settings/ThemeSettings.tsx',
   '/components/Modal.tsx',
   '/components/ToggleSwitch.tsx',
+  '/components/ProfilePage.tsx',
   // Admin components
   '/components/AdminPage.tsx',
   '/components/admin/AnalyticsDashboard.tsx',

@@ -31,6 +31,7 @@ import SplashScreen from './components/SplashScreen';
 import Auth from './components/Auth';
 import Onboarding from './components/Onboarding';
 import MyAccount from './components/MyAccount';
+import ProfilePage from './components/ProfilePage';
 import { CAROUSEL_ITEMS, PRIME_MOVIES, PRIME_ORIGINALS, CONTINUE_WATCHING, PROFILES, CATEGORIES } from './constants';
 import { Movie, Profile, DownloadQuality, User } from './types';
 import { ChevronLeftIcon } from './components/Icons';
@@ -172,6 +173,7 @@ const App: React.FC = () => {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [activeProfileFeature, setActiveProfileFeature] = useState<string | null>(null);
   const [downloadedMovies, setDownloadedMovies] = useState<Movie[]>([]);
+  const [favoriteMovies, setFavoriteMovies] = useState<Movie[]>([]);
   const [downloadQuality, setDownloadQuality] = useState<DownloadQuality>('Better');
   const [autoDelete, setAutoDelete] = useState<boolean>(false);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
@@ -301,6 +303,9 @@ const App: React.FC = () => {
     try {
         const storedDownloads = localStorage.getItem('downloadedMovies');
         if (storedDownloads) setDownloadedMovies(JSON.parse(storedDownloads));
+
+        const storedFavorites = localStorage.getItem('favoriteMovies');
+        if (storedFavorites) setFavoriteMovies(JSON.parse(storedFavorites));
         
         const storedQuality = localStorage.getItem('downloadQuality') as DownloadQuality;
         if (storedQuality) setDownloadQuality(storedQuality);
@@ -462,6 +467,10 @@ const App: React.FC = () => {
       localStorage.setItem('downloadedMovies', JSON.stringify(downloadedMovies));
   }, [downloadedMovies]);
 
+   useEffect(() => {
+      localStorage.setItem('favoriteMovies', JSON.stringify(favoriteMovies));
+  }, [favoriteMovies]);
+
   useEffect(() => {
       localStorage.setItem('downloadQuality', downloadQuality);
   }, [downloadQuality]);
@@ -527,6 +536,14 @@ const App: React.FC = () => {
 
         return [...prev, downloadedMovie];
     });
+  };
+
+  const handleToggleFavorite = (movie: Movie) => {
+    setFavoriteMovies(prev =>
+      prev.some(m => m.id === movie.id)
+        ? prev.filter(m => m.id !== movie.id)
+        : [...prev, movie]
+    );
   };
 
   const handleRemoveDownload = (movie: Movie) => {
@@ -723,6 +740,8 @@ const App: React.FC = () => {
                     onDownload={handleDownloadMovie} 
                     downloadedMovies={downloadedMovies} 
                     onPlay={handlePlayMovie}
+                    isFavorite={favoriteMovies.some(m => m.id === selectedMovie.id)}
+                    onToggleFavorite={handleToggleFavorite}
                 />;
     }
     
@@ -763,6 +782,15 @@ const App: React.FC = () => {
         return <Downloads movies={downloadedMovies} onRemove={handleRemoveDownload} onMovieClick={handleMovieSelect} />;
       case 'Anime':
         return <NewsPage onMovieClick={handleMovieSelect} />;
+      case 'Me':
+        return <ProfilePage
+                  currentUser={currentUser}
+                  onLogout={handleLogout}
+                  onEditProfile={handleProfileClick}
+                  favoriteMovies={favoriteMovies}
+                  historyMovies={CONTINUE_WATCHING}
+                  onMovieClick={handleMovieSelect}
+               />;
       default:
         return (
             <div className="p-4 text-center text-[var(--text-color-secondary)] mt-8">
@@ -785,7 +813,7 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="pt-6">
-            {!selectedMovie && view === 'app' && !isPlayerOpen &&
+            {!selectedMovie && view === 'app' && !isPlayerOpen && activeTab !== 'Me' &&
                 <Header 
                     isSearchActive={activeTab === 'Search'} 
                     onCancelSearch={handleCancelSearch}

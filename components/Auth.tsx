@@ -53,6 +53,7 @@ const Auth: React.FC = () => {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [rePasswordVisible, setRePasswordVisible] = useState(false);
     const [selectedAvatar, setSelectedAvatar] = useState(avatars[8]);
+    const [isAvatarGridVisible, setIsAvatarGridVisible] = useState(false);
 
     const handleAuthError = (err: any) => {
         let errorMessage = err.message?.replace('Firebase: ', '') || 'An unknown error occurred.';
@@ -84,6 +85,7 @@ const Auth: React.FC = () => {
         setRePassword('');
         setPhoneNumber('');
         setName('');
+        setIsAvatarGridVisible(false);
     };
 
     const handleEmailPasswordSubmit = async (e: React.FormEvent) => {
@@ -157,9 +159,9 @@ const Auth: React.FC = () => {
     };
 
     const renderWelcomeView = () => (
-        <div className="text-center flex flex-col items-center justify-between h-full py-10">
+        <div className="text-center flex flex-col items-center h-full py-20">
             <RIYOBOXLogo className="h-10 text-white" />
-            <div className="w-full max-w-xs space-y-4">
+            <div className="w-full max-w-xs space-y-4 mt-auto">
                 <button 
                     onClick={() => { setAuthView('login'); resetState(); }} 
                     className="w-full bg-amber-400 text-black font-bold py-4 rounded-full text-lg hover:bg-amber-300 transition-colors"
@@ -178,10 +180,7 @@ const Auth: React.FC = () => {
 
     const renderLoginView = () => (
         <>
-            <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold mt-4">Login</h1>
-            </div>
-
+            <RIYOBOXLogo className="h-10 text-white mx-auto mb-16" />
             {renderErrorMessage()}
             
             <form onSubmit={handleEmailPasswordSubmit} className="space-y-5">
@@ -218,18 +217,13 @@ const Auth: React.FC = () => {
 
     const renderSignupView = () => (
          <>
-            <h1 className="text-4xl font-bold mt-4 text-center mb-6 flex items-center justify-center space-x-2">
-                <span>Create</span>
-                <TicketIcon className="w-10 h-10 text-amber-400"/>
-                <span>Account</span>
-            </h1>
-
+            <RIYOBOXLogo className="h-10 text-white mx-auto mb-8" />
             <div className="flex flex-col items-center mb-6">
                 <div className="relative">
                     <img src={selectedAvatar} alt="Selected Avatar" className="w-24 h-24 rounded-full object-cover border-4 border-gray-700" />
                     <button 
                         type="button" 
-                        onClick={() => document.getElementById('avatar-grid')?.scrollIntoView({ behavior: 'smooth' })}
+                        onClick={() => setIsAvatarGridVisible(true)}
                         className="absolute bottom-0 right-0 bg-amber-400 rounded-full p-1.5 border-2 border-black hover:bg-amber-300 transition-colors"
                     >
                         <PencilIcon className="w-4 h-4 text-black" />
@@ -261,21 +255,26 @@ const Auth: React.FC = () => {
                     iconClickable={rePasswordVisible}
                 />
                 
-                <div id="avatar-grid" className="pt-4">
-                    <p className="text-center text-gray-400 mb-4">Pick an Avatar</p>
-                    <div className="grid grid-cols-3 gap-4">
-                        {avatars.map(avatarUrl => (
-                            <button
-                                type="button"
-                                key={avatarUrl}
-                                onClick={() => setSelectedAvatar(avatarUrl)}
-                                className={`rounded-full overflow-hidden transition-all duration-200 ${selectedAvatar === avatarUrl ? 'ring-4 ring-amber-400 scale-110' : 'hover:ring-2 hover:ring-gray-600'}`}
-                            >
-                                <img src={avatarUrl} alt="Avatar option" className="w-full h-full object-cover"/>
-                            </button>
-                        ))}
+                {isAvatarGridVisible && (
+                    <div id="avatar-grid" className="pt-4 animate-fade-in">
+                        <p className="text-center text-gray-400 mb-4">Pick an Avatar</p>
+                        <div className="grid grid-cols-3 gap-4">
+                            {avatars.map(avatarUrl => (
+                                <button
+                                    type="button"
+                                    key={avatarUrl}
+                                    onClick={() => {
+                                        setSelectedAvatar(avatarUrl);
+                                        setIsAvatarGridVisible(false);
+                                    }}
+                                    className={`rounded-full overflow-hidden transition-all duration-200 ${selectedAvatar === avatarUrl ? 'ring-4 ring-amber-400 scale-110' : 'hover:ring-2 hover:ring-gray-600'}`}
+                                >
+                                    <img src={avatarUrl} alt="Avatar option" className="w-full h-full object-cover"/>
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
 
                 <button type="submit" disabled={loading} className="w-full bg-amber-400 text-black font-bold py-4 rounded-full text-lg hover:bg-amber-300 transition-colors disabled:bg-amber-600 disabled:cursor-not-allowed mt-6 !mt-6">
@@ -294,6 +293,7 @@ const Auth: React.FC = () => {
 
     const renderResetPasswordView = () => (
          <>
+            <RIYOBOXLogo className="h-10 text-white mx-auto mb-16" />
             <h1 className="text-3xl font-bold mb-2 text-center">Reset Password</h1>
             <p className="text-gray-400 text-center mb-6 text-sm">Enter your email to receive a reset link.</p>
 
@@ -328,7 +328,7 @@ const Auth: React.FC = () => {
     return (
         <div className="bg-black text-white h-screen w-full max-w-md mx-auto flex flex-col p-6 font-sans animate-fade-in">
             {authView !== 'welcome' && (
-                <div className="absolute top-5 left-5">
+                <div className="absolute top-5 left-5 z-10">
                     <button onClick={() => { setAuthView('welcome'); resetState(); }}>
                         <ChevronLeftIcon className="w-6 h-6 text-gray-400 hover:text-white"/>
                     </button>

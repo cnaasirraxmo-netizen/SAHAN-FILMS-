@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { Movie } from '../types';
-import { ChevronLeftIcon, PlayIcon, DownloadIcon, CheckIcon } from './Icons';
+import { ChevronLeftIcon, PlayIcon, DownloadIcon, CheckIcon, HeartIcon } from './Icons';
 import { ThemeContext } from '../App';
 
 interface MovieDetailsProps {
@@ -9,9 +9,11 @@ interface MovieDetailsProps {
   onDownload: (movie: Movie) => void;
   downloadedMovies: Movie[];
   onPlay: () => void;
+  isFavorite: boolean;
+  onToggleFavorite: (movie: Movie) => void;
 }
 
-const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, downloadedMovies, onPlay }) => {
+const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, downloadedMovies, onPlay, isFavorite, onToggleFavorite }) => {
     const { theme } = useContext(ThemeContext);
     const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
     
@@ -114,13 +116,22 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, 
             <span>Play</span>
         </button>
         
-        <button
-            onClick={handleDownloadClick}
-            disabled={isDownloaded || downloadProgress !== null}
-            className="w-full bg-gray-600/50 text-white font-bold py-3 rounded-md flex items-center justify-center space-x-2 my-4 disabled:opacity-70 disabled:cursor-not-allowed"
-        >
-            {getDownloadButtonContent()}
-        </button>
+        <div className="flex space-x-3">
+            <button
+                onClick={handleDownloadClick}
+                disabled={isDownloaded || downloadProgress !== null}
+                className="flex-grow bg-gray-600/50 text-white font-bold py-3 rounded-md flex items-center justify-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+                {getDownloadButtonContent()}
+            </button>
+            <button
+                onClick={() => onToggleFavorite(movie)}
+                className={`w-14 bg-gray-600/50 text-white rounded-md flex items-center justify-center transition-colors ${isFavorite ? 'text-red-500' : ''}`}
+                aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            >
+                <HeartIcon className="w-7 h-7" filled={isFavorite} />
+            </button>
+        </div>
 
 
         <p className="text-[var(--text-color)] text-base leading-relaxed my-4">
