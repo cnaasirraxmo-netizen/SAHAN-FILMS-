@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AnalyticsIcon, ContentMgmtIcon, UserMgmtIcon, MonetizationIcon, CustomizationIcon, PrimeLogo } from './Icons';
+import { AnalyticsIcon, ContentMgmtIcon, UserMgmtIcon, MonetizationIcon, CustomizationIcon, BrandLogo } from './Icons';
 import AnalyticsDashboard from './admin/AnalyticsDashboard';
 import ContentManagement from './admin/ContentManagement';
 import UserManagement from './admin/UserManagement';
@@ -55,7 +55,7 @@ const AdminPage: React.FC = () => {
             {/* Sidebar */}
             <aside className="w-64 bg-[#181818] p-4 flex flex-col space-y-4 border-r border-gray-800">
                 <div className="flex items-center justify-center py-4">
-                    <PrimeLogo className="h-8" />
+                    <BrandLogo className="h-8" />
                 </div>
                 <nav className="flex-grow">
                     <ul className="space-y-2">
@@ -73,7 +73,7 @@ const AdminPage: React.FC = () => {
                     </ul>
                 </nav>
                 <div className="text-center text-xs text-gray-600">
-                    <p>&copy; 2024 SAHAN FILMS ™</p>
+                    <p>&copy; 2024 Movies</p>
                     <p>Admin Panel v1.0</p>
                 </div>
             </aside>

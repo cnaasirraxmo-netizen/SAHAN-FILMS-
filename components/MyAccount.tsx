@@ -12,9 +12,10 @@ interface MyAccountProps {
   onBack: () => void;
   onManageProfiles: () => void;
   onLogout: () => void;
+  onUserUpdate: (user: User | null) => void;
 }
 
-const MyAccount: React.FC<MyAccountProps> = ({ currentUser, onBack, onManageProfiles, onLogout }) => {
+const MyAccount: React.FC<MyAccountProps> = ({ currentUser, onBack, onManageProfiles, onLogout, onUserUpdate }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [name, setName] = useState(currentUser.name || '');
@@ -35,14 +36,24 @@ const MyAccount: React.FC<MyAccountProps> = ({ currentUser, onBack, onManageProf
     setError('');
     setSuccess('');
     try {
+      const newAvatarUrl = `https://picsum.photos/seed/${name.toLowerCase().replace(/\s/g, '')}/200`;
       // FIX: Use compat API: updateProfile is a method on the user object.
       await auth.currentUser.updateProfile({
         displayName: name,
-        // For simplicity, we'll generate a new random avatar on name change
-        photoURL: `https://picsum.photos/seed/${name.toLowerCase().replace(/\s/g, '')}/200`
+        photoURL: newAvatarUrl
       });
-      setSuccess("Profile updated successfully! Refreshing the app will show your changes.");
-      setTimeout(() => setIsEditModalOpen(false), 2500);
+
+      // Update the user state in the parent component for immediate UI feedback.
+      if (currentUser) {
+          onUserUpdate({
+              ...currentUser,
+              name: name,
+              avatarUrl: newAvatarUrl
+          });
+      }
+
+      setSuccess("Profile updated successfully!");
+      setTimeout(() => setIsEditModalOpen(false), 2000);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -154,8 +165,8 @@ const MyAccount: React.FC<MyAccountProps> = ({ currentUser, onBack, onManageProf
             onClose={() => setIsEditModalOpen(false)}
             onConfirm={handleUpdateProfile}
             title="Edit Profile"
-            confirmButtonText="Save Changes"
-            confirmButtonClass="bg-sky-600 text-white font-semibold hover:bg-sky-500"
+            confirmButtonText={loading ? "Saving..." : "Save Changes"}
+            confirmButtonClass="bg-sky-600 text-white font-semibold hover:bg-sky-500 disabled:bg-sky-800"
         >
            <div className="space-y-4">
                 <div>

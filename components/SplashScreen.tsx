@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { TicketIcon } from './Icons';
 
 const SplashScreen: React.FC = () => {
   const [isFadingOut, setIsFadingOut] = useState(false);
@@ -17,9 +18,10 @@ const SplashScreen: React.FC = () => {
         isFadingOut ? 'animate-fade-out' : 'opacity-100'
       }`}
     >
-      <div className="animate-fade-in-scale-up">
-        <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-wider animate-glow">
-          SAHAN FILMS ™
+      <div className="animate-fade-in-scale-up flex flex-col items-center">
+        <TicketIcon className="w-28 h-28 text-amber-400" />
+        <h1 className="text-5xl font-bold text-white mt-4">
+          Movies
         </h1>
       </div>
     </div>

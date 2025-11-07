@@ -9,9 +9,12 @@ interface MovieDetailsProps {
   onDownload: (movie: Movie) => void;
   downloadedMovies: Movie[];
   onPlay: () => void;
+  watchlistIds: number[];
+  onAddToWatchlist: (movieId: number) => void;
+  onRemoveFromWatchlist: (movieId: number) => void;
 }
 
-const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, downloadedMovies, onPlay }) => {
+const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, downloadedMovies, onPlay, watchlistIds, onAddToWatchlist, onRemoveFromWatchlist }) => {
     const { theme } = useContext(ThemeContext);
     const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
     
@@ -20,6 +23,7 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, 
         : 'from-gray-900/60 via-gray-900/30 to-transparent';
 
     const isDownloaded = downloadedMovies.some(m => m.id === movie.id);
+    const isWatchlisted = watchlistIds.includes(movie.id);
 
     const handleDownloadClick = () => {
         if (isDownloaded || downloadProgress !== null) return;
@@ -109,19 +113,28 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, 
           <span className="border border-gray-500/80 px-1.5 py-0.5 rounded text-xs font-semibold tracking-wide">{movie.rating}</span>
         </div>
         
+        <button onClick={onPlay} className="w-full bg-white text-black font-bold py-3 rounded-md flex items-center justify-center space-x-2 my-4">
+            <PlayIcon className="w-6 h-6" />
+            <span>Play</span>
+        </button>
+        
         <div className="flex items-center space-x-2 my-4">
-            <button onClick={onPlay} className="flex-grow bg-white text-black font-bold py-3 rounded-md flex items-center justify-center space-x-2">
-                <PlayIcon className="w-6 h-6" />
-                <span>Play</span>
-            </button>
             <button
                 onClick={handleDownloadClick}
                 disabled={isDownloaded || downloadProgress !== null}
-                className="flex-shrink-0 bg-gray-600/50 text-white font-bold py-3 rounded-md flex items-center justify-center space-x-2 px-4 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="flex-grow bg-gray-600/50 text-white font-bold py-3 rounded-md flex items-center justify-center space-x-2 px-4 disabled:opacity-70 disabled:cursor-not-allowed"
             >
                 {getDownloadButtonContent()}
             </button>
+            <button
+                onClick={() => isWatchlisted ? onRemoveFromWatchlist(movie.id) : onAddToWatchlist(movie.id)}
+                className="flex-shrink-0 bg-gray-600/50 text-white p-3.5 rounded-md"
+                aria-label={isWatchlisted ? 'Remove from watchlist' : 'Add to watchlist'}
+            >
+                {isWatchlisted ? <CheckIcon className="w-6 h-6 text-sky-400" /> : <AddToWatchlistIcon className="w-6 h-6" />}
+            </button>
         </div>
+
 
         <p className="text-[var(--text-color)] text-base leading-relaxed my-4">
             {movie.description}

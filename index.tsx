@@ -16,11 +16,8 @@ root.render(
   </React.StrictMode>
 );
 
-// Register the service worker after the page has fully loaded.
-// This is the most reliable way to avoid the "invalid state" error.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Construct an absolute URL for the service worker to prevent cross-origin errors.
     const swUrl = `${location.origin}/service-worker.js`;
     navigator.serviceWorker.register(swUrl)
       .then(registration => {

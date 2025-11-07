@@ -130,13 +130,16 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
     }
 
     // Strategy for images: Stale-While-Revalidate
-    if (url.hostname === 'picsum.photos') {
+    if (url.hostname === 'picsum.photos' || url.hostname === 'image.tmdb.org') {
         event.respondWith(
             caches.open(IMAGE_CACHE_NAME).then(async (cache) => {
                 const cachedResponse = await cache.match(request);
                 const fetchedResponsePromise = fetch(request).then((networkResponse) => {
                     cache.put(request, networkResponse.clone());
                     return networkResponse;
+                }).catch(err => {
+                    console.error("Image fetch failed: ", err);
+                    return new Response(); // Return empty response on failure
                 });
                 return cachedResponse || fetchedResponsePromise;
             })
@@ -149,7 +152,7 @@ sw.addEventListener('fetch', (event: FetchEvent) => {
         caches.match(request).then((response) => {
             return response || fetch(request).then(fetchRes => {
                 return caches.open(DYNAMIC_CACHE_NAME).then(cache => {
-                    if (!url.href.includes('firestore.googleapis.com')) {
+                    if (!url.href.includes('firestore.googleapis.com') && !url.href.includes('google.com/recaptcha')) {
                        cache.put(request, fetchRes.clone());
                     }
                     return fetchRes;

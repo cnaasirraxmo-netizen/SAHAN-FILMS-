@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface IconProps {
@@ -5,10 +6,10 @@ interface IconProps {
   onClick?: () => void;
 }
 
-export const PrimeLogo: React.FC<IconProps> = ({ className }) => (
-  <svg className={className} viewBox="0 0 200 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <text x="100" y="18" dominantBaseline="middle" textAnchor="middle" fontFamily="Roboto, Helvetica, Arial, sans-serif" fontSize="22" fill="var(--text-color)" fontWeight="bold" letterSpacing="1">SAHAN</text>
-    <text x="100" y="34" dominantBaseline="middle" textAnchor="middle" fontFamily="Roboto, Helvetica, Arial, sans-serif" fontSize="10" fill="var(--text-color)" fontWeight="500" letterSpacing="4">FILMS ™</text>
+export const BrandLogo: React.FC<IconProps> = ({ className }) => (
+  <svg className={className} viewBox="0 0 130 30" fill="var(--text-color)" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 6.5C20 5.12 18.88 4 17.5 4H6.5C5.12 4 4 5.12 4 6.5V8.64C5.16 8.24 6 7.21 6 6C6 4.9 5.1 4 4 4S2 4.9 2 6C2 7.21 2.84 8.24 4 8.64V11.5v3.86C2.84 15.76 2 16.79 2 18c0 1.1 0.9 2 2 2s2-0.9 2-2c0-1.21-0.84-2.24-2-2.64V14.5v-3h16v1.86c-1.16 0.4-2 1.43-2 2.64c0 1.1 0.9 2 2 2s2-0.9 2-2c0-1.21-0.84-2.24-2-2.64V11.5V8.64C21.16 8.24 22 7.21 22 6c0-1.1-0.9-2-2-2s-2 0.9-2 2c0 1.21 0.84 2.24 2 2.64V6.5zM13.81 12.49L12 11.13l-1.81 1.36l0.69-2.2L9.12 9.01l2.25-0.19l0.83-2.13l0.83 2.13l2.25 0.19l-1.76 1.28L13.81 12.49z" fill="#FBBF24"/>
+    <text x="35" y="18" dominantBaseline="middle" fontFamily="Roboto, sans-serif" fontSize="20" fontWeight="bold">Movies</text>
   </svg>
 );
 
@@ -302,5 +303,43 @@ export const GoogleIcon: React.FC<IconProps> = ({ className }) => (
 export const LogoutIcon: React.FC<IconProps> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+    </svg>
+);
+
+// New Auth Icons
+export const TicketIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6.5C20 5.12 18.88 4 17.5 4H6.5C5.12 4 4 5.12 4 6.5V8.64C5.16 8.24 6 7.21 6 6C6 4.9 5.1 4 4 4S2 4.9 2 6C2 7.21 2.84 8.24 4 8.64V11.5v3.86C2.84 15.76 2 16.79 2 18c0 1.1 0.9 2 2 2s2-0.9 2-2c0-1.21-0.84-2.24-2-2.64V14.5v-3h16v1.86c-1.16 0.4-2 1.43-2 2.64c0 1.1 0.9 2 2 2s2-0.9 2-2c0-1.21-0.84-2.24-2-2.64V11.5V8.64C21.16 8.24 22 7.21 22 6c0-1.1-0.9-2-2-2s-2 0.9-2 2c0 1.21 0.84 2.24 2 2.64V6.5zM13.81 12.49L12 11.13l-1.81 1.36l0.69-2.2L9.12 9.01l2.25-0.19l0.83-2.13l0.83 2.13l2.25 0.19l-1.76 1.28L13.81 12.49z"/>
+    </svg>
+);
+
+export const EmailIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16 12A4 4 0 108 12a4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+    </svg>
+);
+
+export const LockIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+    </svg>
+);
+
+export const EyeIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    </svg>
+);
+
+export const EyeOffIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+    </svg>
+);
+
+export const PhoneIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
     </svg>
 );

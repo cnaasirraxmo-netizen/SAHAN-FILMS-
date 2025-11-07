@@ -3,7 +3,7 @@
 import React, { useState, useEffect, createContext, useCallback } from 'react';
 import { auth } from './firebase';
 // FIX: Import firebase compat to resolve module export errors for auth functions.
-import firebase from 'firebase/compat/app';
+import * as firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import Header from './components/Header';
 import CategoryNav from './components/CategoryNav';
@@ -26,7 +26,7 @@ import VideoPlayer from './components/VideoPlayer';
 import CastPlayer from './components/CastPlayer';
 import CategoryPage from './components/CategoryPage';
 import FilmsPage from './components/FilmsPage';
-import NewsPage from './components/NewsPage';
+import Watchlist from './components/Watchlist';
 import AdminPage from './components/AdminPage';
 import SplashScreen from './components/SplashScreen';
 import Auth from './components/Auth';
@@ -172,6 +172,7 @@ const App: React.FC = () => {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [activeProfileFeature, setActiveProfileFeature] = useState<string | null>(null);
   const [downloadedMovies, setDownloadedMovies] = useState<Movie[]>([]);
+  const [watchlistIds, setWatchlistIds] = useState<number[]>([]);
   const [downloadQuality, setDownloadQuality] = useState<DownloadQuality>('Better');
   const [autoDelete, setAutoDelete] = useState<boolean>(false);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
@@ -217,6 +218,8 @@ const App: React.FC = () => {
           year: movie.release_date ? parseInt(movie.release_date.substring(0, 4)) : 0,
           rating: movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A',
           duration: '', // Duration is not available in search results.
+          // FIX: Added videoUrl_480p to support downloading movies from search results.
+          videoUrl_480p: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
         }));
 
       setSearchResults(mappedResults);
@@ -290,6 +293,9 @@ const App: React.FC = () => {
     try {
         const storedDownloads = localStorage.getItem('downloadedMovies');
         if (storedDownloads) setDownloadedMovies(JSON.parse(storedDownloads));
+        
+        const storedWatchlist = localStorage.getItem('watchlistIds');
+        if (storedWatchlist) setWatchlistIds(JSON.parse(storedWatchlist));
 
         const storedQuality = localStorage.getItem('downloadQuality') as DownloadQuality;
         if (storedQuality) setDownloadQuality(storedQuality);
@@ -452,6 +458,10 @@ const App: React.FC = () => {
   }, [downloadedMovies]);
 
   useEffect(() => {
+      localStorage.setItem('watchlistIds', JSON.stringify(watchlistIds));
+  }, [watchlistIds]);
+
+  useEffect(() => {
       localStorage.setItem('downloadQuality', downloadQuality);
   }, [downloadQuality]);
 
@@ -511,6 +521,17 @@ const App: React.FC = () => {
 
         return [...prev, downloadedMovie];
     });
+  };
+
+  const handleAddToWatchlist = (movieId: number) => {
+    setWatchlistIds(prev => {
+        if (prev.includes(movieId)) return prev;
+        return [...prev, movieId];
+    });
+  };
+
+  const handleRemoveFromWatchlist = (movieId: number) => {
+      setWatchlistIds(prev => prev.filter(id => id !== movieId));
   };
 
   const handleRemoveDownload = (movie: Movie) => {
@@ -659,6 +680,7 @@ const App: React.FC = () => {
       onBack={() => setView('app')}
       onManageProfiles={() => setView('profiles')}
       onLogout={handleLogout}
+      onUserUpdate={setCurrentUser}
     />;
   }
 
@@ -696,7 +718,16 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     if (selectedMovie) {
-        return <MovieDetails movie={selectedMovie} onBack={handleBackFromDetails} onDownload={handleDownloadMovie} downloadedMovies={downloadedMovies} onPlay={handlePlayMovie} />;
+        return <MovieDetails 
+                    movie={selectedMovie} 
+                    onBack={handleBackFromDetails} 
+                    onDownload={handleDownloadMovie} 
+                    downloadedMovies={downloadedMovies} 
+                    onPlay={handlePlayMovie}
+                    watchlistIds={watchlistIds}
+                    onAddToWatchlist={handleAddToWatchlist}
+                    onRemoveFromWatchlist={handleRemoveFromWatchlist}
+                />;
     }
     
     switch (activeTab) {
@@ -736,8 +767,8 @@ const App: React.FC = () => {
         return <Downloads movies={downloadedMovies} onRemove={handleRemoveDownload} onMovieClick={handleMovieSelect} />;
       case 'Films':
         return <FilmsPage onMovieClick={handleMovieSelect} />;
-      case 'News':
-        return <NewsPage onMovieClick={handleMovieSelect} />;
+      case 'Watchlist':
+        return <Watchlist watchlistIds={watchlistIds} onRemove={handleRemoveFromWatchlist} onMovieClick={handleMovieSelect} />;
       default:
         return (
             <div className="p-4 text-center text-[var(--text-color-secondary)] mt-8">
