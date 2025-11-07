@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 // FIX: Import ChevronLeftIcon to resolve 'Cannot find name' error.
-import { TicketIcon, GoogleIcon, EmailIcon, LockIcon, EyeIcon, EyeOffIcon, UserIcon, PhoneIcon, PencilIcon, ChevronLeftIcon } from './Icons';
+import { RIYOBOXLogo, GoogleIcon, EmailIcon, LockIcon, EyeIcon, EyeOffIcon, UserIcon, PhoneIcon, PencilIcon, ChevronLeftIcon } from './Icons';
 import { auth } from '../firebase';
 // FIX: Import firebase compat to resolve module export errors for auth functions.
 import firebase from 'firebase/compat/app';
@@ -86,7 +86,8 @@ const Auth: React.FC = () => {
     const handleEmailPasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        resetState();
+        setError(null);
+        setSuccessMessage('');
         setLoading(true);
 
         try {
@@ -99,7 +100,7 @@ const Auth: React.FC = () => {
                 await auth.signInWithEmailAndPassword(email, password);
             } else if (authView === 'signup') {
                 if (!name || !email || !password || !rePassword) {
-                    setError({ message: 'Name, email and passwords are required.' });
+                    setError({ message: 'All fields are required.' });
                     setLoading(false);
                     return;
                 }
@@ -109,10 +110,12 @@ const Auth: React.FC = () => {
                     return;
                 }
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                await userCredential.user.updateProfile({
-                    displayName: name,
-                    photoURL: `https://i.pravatar.cc/150?u=${userCredential.user.uid}`
-                });
+                if (userCredential.user) {
+                  await userCredential.user.updateProfile({
+                      displayName: name,
+                      photoURL: `https://i.pravatar.cc/150?u=${userCredential.user.uid}`
+                  });
+                }
             }
         } catch (err: any) {
             handleAuthError(err);
@@ -127,7 +130,8 @@ const Auth: React.FC = () => {
             setError({ message: 'Please enter your email address.' });
             return;
         }
-        resetState();
+        setError(null);
+        setSuccessMessage('');
         setLoading(true);
         try {
             await auth.sendPasswordResetEmail(email);
@@ -150,9 +154,8 @@ const Auth: React.FC = () => {
     };
 
     const renderWelcomeView = () => (
-        <div className="text-center flex flex-col items-center justify-center h-full">
-            <TicketIcon className="w-28 h-28 text-amber-400" />
-            <h1 className="text-5xl font-bold mt-6 mb-16">Welcome</h1>
+        <div className="text-center flex flex-col items-center justify-between h-full py-10">
+            <RIYOBOXLogo className="h-10 text-white" />
             <div className="w-full max-w-xs space-y-4">
                 <button 
                     onClick={() => { setAuthView('login'); resetState(); }} 
@@ -173,7 +176,6 @@ const Auth: React.FC = () => {
     const renderLoginView = () => (
         <>
             <div className="text-center mb-8">
-                <TicketIcon className="w-20 h-20 text-amber-400 mx-auto" />
                 <h1 className="text-4xl font-bold mt-4">Login</h1>
             </div>
 
@@ -193,7 +195,7 @@ const Auth: React.FC = () => {
 
                 <div className="text-right">
                     <button type="button" onClick={() => { setAuthView('reset'); resetState(); }} className="text-sm font-medium text-amber-400 hover:underline">
-                        Forget Password
+                        Forgot Password?
                     </button>
                 </div>
 
@@ -203,7 +205,7 @@ const Auth: React.FC = () => {
             </form>
 
             <p className="mt-8 text-center text-gray-400">
-                Don't Have Account ?
+                Don't Have an Account?
                 <button onClick={() => { setAuthView('signup'); resetState(); }} className="font-semibold text-amber-400 hover:underline ml-2">
                     Create One
                 </button>
@@ -213,16 +215,9 @@ const Auth: React.FC = () => {
 
     const renderSignupView = () => (
          <>
-            <h1 className="text-4xl font-bold mt-4 text-center mb-6 flex items-center justify-center gap-2">
-                Create <TicketIcon className="w-10 h-10 text-amber-400 inline-block"/> Account
+            <h1 className="text-4xl font-bold mt-4 text-center mb-6">
+                Create Account
             </h1>
-
-            <div className="relative w-28 h-28 mx-auto mb-6">
-                <img src={`https://i.pravatar.cc/150?u=${email || 'default'}`} alt="Avatar" className="w-full h-full rounded-full object-cover border-4 border-gray-700" />
-                <button className="absolute bottom-0 right-0 bg-amber-400 text-black p-2 rounded-full border-2 border-black">
-                    <PencilIcon className="w-4 h-4"/>
-                </button>
-            </div>
 
             {renderErrorMessage()}
             
@@ -241,13 +236,12 @@ const Auth: React.FC = () => {
                 <InputField 
                     icon={LockIcon} 
                     type={rePasswordVisible ? "text" : "password"} 
-                    placeholder="Re-Password" 
+                    placeholder="Re-enter Password" 
                     value={rePassword} 
                     onChange={(e) => setRePassword(e.target.value)}
                     onIconClick={() => setRePasswordVisible(!rePasswordVisible)}
                     iconClickable={rePasswordVisible}
                 />
-                <InputField icon={PhoneIcon} type="tel" placeholder="Phone Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
 
                 <button type="submit" disabled={loading} className="w-full bg-amber-400 text-black font-bold py-4 rounded-full text-lg hover:bg-amber-300 transition-colors disabled:bg-amber-600 disabled:cursor-not-allowed mt-6 !mt-6">
                     {loading ? 'Creating...' : 'Create Account'}
@@ -255,7 +249,7 @@ const Auth: React.FC = () => {
             </form>
 
             <p className="mt-8 text-center text-gray-400">
-                Already Have Account ?
+                Already Have an Account?
                 <button onClick={() => { setAuthView('login'); resetState(); }} className="font-semibold text-amber-400 hover:underline ml-2">
                     Login
                 </button>

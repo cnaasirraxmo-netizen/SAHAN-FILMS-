@@ -6,11 +6,14 @@ interface IconProps {
   onClick?: () => void;
 }
 
-export const BrandLogo: React.FC<IconProps> = ({ className }) => (
-  <svg className={className} viewBox="0 0 130 30" fill="var(--text-color)" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 6.5C20 5.12 18.88 4 17.5 4H6.5C5.12 4 4 5.12 4 6.5V8.64C5.16 8.24 6 7.21 6 6C6 4.9 5.1 4 4 4S2 4.9 2 6C2 7.21 2.84 8.24 4 8.64V11.5v3.86C2.84 15.76 2 16.79 2 18c0 1.1 0.9 2 2 2s2-0.9 2-2c0-1.21-0.84-2.24-2-2.64V14.5v-3h16v1.86c-1.16 0.4-2 1.43-2 2.64c0 1.1 0.9 2 2 2s2-0.9 2-2c0-1.21-0.84-2.24-2-2.64V11.5V8.64C21.16 8.24 22 7.21 22 6c0-1.1-0.9-2-2-2s-2 0.9-2 2c0 1.21 0.84 2.24 2 2.64V6.5zM13.81 12.49L12 11.13l-1.81 1.36l0.69-2.2L9.12 9.01l2.25-0.19l0.83-2.13l0.83 2.13l2.25 0.19l-1.76 1.28L13.81 12.49z" fill="#FBBF24"/>
-    <text x="35" y="18" dominantBaseline="middle" fontFamily="Roboto, sans-serif" fontSize="20" fontWeight="bold">Movies</text>
-  </svg>
+export const RIYOBOXLogo: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} viewBox="0 0 130 30" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5.42 25.34L14.58 20.01V9.33L5.42 14.66V25.34Z" fill="#FDE047"/>
+        <path d="M15.42 8.49L24.58 13.82V2.5L15.42 7.83V8.49Z" fill="#FBBF24"/>
+        <path d="M5.42 13.82L14.58 8.49V2.5L5.42 7.83V13.82Z" fill="#FDE047" fillOpacity="0.7"/>
+        <path d="M15.42 20.85L24.58 26.18V14.66L15.42 20V20.85Z" fill="#F59E0B"/>
+        <text x="35" y="18" dominantBaseline="middle" fontFamily="Roboto, sans-serif" fontSize="20" fontWeight="bold">RIYOBOX</text>
+    </svg>
 );
 
 export const CastIcon: React.FC<IconProps> = ({ className }) => (
@@ -26,11 +29,13 @@ export const HomeIcon: React.FC<IconProps> = ({ className }) => (
     </svg>
 );
 
-export const FilmIcon: React.FC<IconProps> = ({ className }) => (
+export const NewsIcon: React.FC<IconProps> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M7 4v16M17 4v16M3 8h4m0 0v8h4m0-8h4m0 0v8h4m0-8h4M3 12h18M3 16h4m0 0v-8h4m0 8h4m0 0v-8h4m0 8h4" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V21h-11.25v-8.25c0-.621.504-1.125 1.125-1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V7.5" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 21h17.25c.621 0 1.125-.504 1.125-1.125V9.75c0-.621-.504-1.125-1.125-1.125h-17.25c-.621 0-1.125.504-1.125 1.125v10.125c0 .621.504 1.125 1.125 1.125z" />
     </svg>
 );
+
 
 export const BookmarkIcon: React.FC<IconProps> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

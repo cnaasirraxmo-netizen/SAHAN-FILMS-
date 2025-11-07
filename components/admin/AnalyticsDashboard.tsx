@@ -1,5 +1,6 @@
 import React from 'react';
-import { UserIcon, MonetizationIcon, FilmIcon, HistoryIcon } from '../Icons';
+// FIX: The 'FilmIcon' is not an exported member of '../Icons'. Using 'ContentMgmtIcon' as an alias since it represents a filmstrip and is suitable for "Content Library".
+import { UserIcon, MonetizationIcon, ContentMgmtIcon as FilmIcon, HistoryIcon } from '../Icons';
 
 const StatCard: React.FC<{ title: string; value: string; icon: React.FC<{className?: string}>; trend?: string; }> = ({ title, value, icon: Icon, trend }) => (
     <div className="bg-[#181818] p-5 rounded-lg shadow-lg flex items-center space-x-4">

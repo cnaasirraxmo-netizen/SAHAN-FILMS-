@@ -1,5 +1,5 @@
 {
-  "name": "Copy of SAHAN FILMS ™",
-  "description": "A static UI clone of the Amazon Prime Video mobile application, built with React and Tailwind CSS, focusing on visual accuracy and component-based architecture to replicate the user experience.",
+  "name": "RIYOBOX",
+  "description": "A feature-rich movie streaming application built with React and Tailwind CSS, with full offline PWA support and a sleek, modern UI.",
   "requestFramePermissions": []
 }

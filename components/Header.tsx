@@ -1,5 +1,5 @@
 import React from 'react';
-import { CastIcon, BrandLogo, SearchIcon, SettingsIcon, ChevronLeftIcon } from './Icons';
+import { CastIcon, RIYOBOXLogo, SearchIcon, SettingsIcon, ChevronLeftIcon } from './Icons';
 import { User } from '../types';
 
 interface HeaderProps {
@@ -74,7 +74,7 @@ const Header: React.FC<HeaderProps> = ({ isSearchActive, onCancelSearch, isSetti
   return (
     <header className="px-4 py-2 flex justify-between items-center bg-[var(--background-color)]">
       <div className="flex items-center space-x-3">
-        <BrandLogo className="h-6" />
+        <RIYOBOXLogo className="h-6" />
         <OnlineStatusIndicator isOnline={isOnline} />
       </div>
       <div className="flex items-center space-x-4">

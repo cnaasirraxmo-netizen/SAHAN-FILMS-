@@ -1,5 +1,6 @@
 import React from 'react';
 import { CAROUSEL_ITEMS, PRIME_MOVIES, PRIME_ORIGINALS } from '../../constants';
+import { RIYOBOXLogo } from '../Icons';
 
 const DraggableItem: React.FC<{ title: string }> = ({ title }) => (
     <div className="bg-gray-700 p-3 rounded-md text-white text-sm cursor-grab active:cursor-grabbing flex items-center space-x-2">
@@ -21,8 +22,8 @@ const PlatformCustomization: React.FC = () => {
                         <div>
                             <label className="text-sm text-gray-400 block mb-2">Logo</label>
                             <div className="flex items-center space-x-4">
-                                <div className="w-20 h-10 bg-gray-700 rounded flex items-center justify-center">
-                                    <span className="text-xs text-gray-400">SAHAN</span>
+                                <div className="w-24 h-12 bg-gray-700 rounded flex items-center justify-center p-2">
+                                    <RIYOBOXLogo className="h-6" />
                                 </div>
                                 <button className="bg-gray-600 hover:bg-gray-500 px-3 py-1.5 rounded-md text-sm font-semibold">Upload New</button>
                             </div>
@@ -54,8 +55,8 @@ const PlatformCustomization: React.FC = () => {
                             <h3 className="text-md font-semibold text-gray-300 mb-2">Page Sections</h3>
                              <DraggableItem title="Hero Carousel" />
                              <DraggableItem title="Continue Watching" />
-                             <DraggableItem title="SAHAN FILMS™ Movies" />
-                             <DraggableItem title="SAHAN FILMS™ Originals" />
+                             <DraggableItem title="RIYOBOX Movies" />
+                             <DraggableItem title="RIYOBOX Originals" />
                         </div>
                         {/* Preview */}
                         <div className="w-2/3 bg-[#101010] p-4 rounded-lg border border-gray-700">
@@ -64,13 +65,13 @@ const PlatformCustomization: React.FC = () => {
                                 {/* Mockup of the app UI */}
                                 <div className="aspect-video bg-gray-700 rounded-md flex items-center justify-center text-gray-400">{CAROUSEL_ITEMS[0].subtitle}</div>
                                 <div>
-                                    <p className="font-bold text-white text-sm mb-1">SAHAN FILMS™ Movies</p>
+                                    <p className="font-bold text-white text-sm mb-1">RIYOBOX Movies</p>
                                     <div className="flex space-x-2">
                                         {PRIME_MOVIES.slice(0, 3).map(m => <div key={m.id} className="w-16 h-24 bg-gray-700 rounded-md flex-shrink-0" style={{backgroundImage: `url(${m.posterUrl})`, backgroundSize: 'cover'}}></div>)}
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="font-bold text-white text-sm mb-1">SAHAN FILMS™ Originals</p>
+                                    <p className="font-bold text-white text-sm mb-1">RIYOBOX Originals</p>
                                     <div className="flex space-x-2">
                                         {PRIME_ORIGINALS.slice(0, 3).map(m => <div key={m.id} className="w-16 h-24 bg-gray-700 rounded-md flex-shrink-0" style={{backgroundImage: `url(${m.posterUrl})`, backgroundSize: 'cover'}}></div>)}
                                     </div>

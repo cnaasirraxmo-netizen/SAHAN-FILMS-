@@ -40,14 +40,14 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
         />
         <div className={`absolute inset-0 bg-gradient-to-t ${gradientClass}`} />
         <div className="absolute bottom-0 left-0 p-4 text-white">
-          {currentItem.showBrand && <span className="text-blue-400 font-bold text-sm">SAHAN FILMS™</span>}
+          {currentItem.showBrand && <span className="text-blue-400 font-bold text-sm">RIYOBOX</span>}
           <p className="text-xs font-light tracking-widest">{currentItem.title}</p>
           <h2 className="text-2xl font-extrabold tracking-tighter">{currentItem.subtitle}</h2>
           <div className="flex items-center mt-1">
             <div className="bg-blue-500 rounded-full p-0.5">
                 <CheckIcon className="w-3 h-3 text-black" />
             </div>
-            <span className="ml-2 text-sm font-semibold">Included with SAHAN FILMS™</span>
+            <span className="ml-2 text-sm font-semibold">Included with RIYOBOX</span>
           </div>
         </div>
       </div>

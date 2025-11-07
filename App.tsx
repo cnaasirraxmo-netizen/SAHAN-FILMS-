@@ -25,11 +25,12 @@ import Downloads from './components/Downloads';
 import VideoPlayer from './components/VideoPlayer';
 import CastPlayer from './components/CastPlayer';
 import CategoryPage from './components/CategoryPage';
-import FilmsPage from './components/FilmsPage';
+import NewsPage from './components/NewsPage';
 import Watchlist from './components/Watchlist';
 import AdminPage from './components/AdminPage';
 import SplashScreen from './components/SplashScreen';
 import Auth from './components/Auth';
+import Onboarding from './components/Onboarding';
 import MyAccount from './components/MyAccount';
 import { CAROUSEL_ITEMS, PRIME_MOVIES, PRIME_ORIGINALS, CONTINUE_WATCHING, PROFILES, CATEGORIES } from './constants';
 import { Movie, Profile, DownloadQuality, User } from './types';
@@ -180,6 +181,7 @@ const App: React.FC = () => {
   const [isCastAvailable, setIsCastAvailable] = useState(false);
   const [isControllingCast, setIsControllingCast] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Movie[]>([]);
@@ -255,6 +257,13 @@ const App: React.FC = () => {
     // FIX: Use compat API for onAuthStateChanged and firebase.User type.
     const unsubscribe = auth.onAuthStateChanged((firebaseUser: firebase.User | null) => {
         if (firebaseUser) {
+            const isNewUser = firebaseUser.metadata.creationTime === firebaseUser.metadata.lastSignInTime;
+            const onboardingCompleted = localStorage.getItem('onboardingCompleted');
+
+            if (isNewUser && !onboardingCompleted) {
+                setShowOnboarding(true);
+            }
+
             setCurrentUser({
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
@@ -263,6 +272,7 @@ const App: React.FC = () => {
             });
         } else {
             setCurrentUser(null);
+            setShowOnboarding(false);
         }
         setAuthReady(true);
     });
@@ -490,6 +500,11 @@ const App: React.FC = () => {
     setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
 
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('onboardingCompleted', 'true');
+    setShowOnboarding(false);
+  };
+
   const handleLogout = () => {
     // FIX: Use compat API for signOut.
     auth.signOut().catch(error => console.error("Sign out error", error));
@@ -665,6 +680,10 @@ const App: React.FC = () => {
   if (!currentUser) {
     return <Auth />;
   }
+  
+  if (showOnboarding) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
+  }
 
   if (isControllingCast && selectedMovie) {
     return <CastPlayer movie={selectedMovie} onClose={() => setIsControllingCast(false)} />;
@@ -744,8 +763,8 @@ const App: React.FC = () => {
             {activeCategory === 'All' ? (
               <>
                 <HeroCarousel items={CAROUSEL_ITEMS} />
-                <ContentRow title="SAHAN FILMS™ movies" items={PRIME_MOVIES} wide={true} onMovieClick={handleMovieSelect} />
-                <ContentRow title="SAHAN FILMS™ Originals" items={PRIME_ORIGINALS} wide={false} onMovieClick={handleMovieSelect} />
+                <ContentRow title="RIYOBOX movies" items={PRIME_MOVIES} wide={true} onMovieClick={handleMovieSelect} />
+                <ContentRow title="RIYOBOX Originals" items={PRIME_ORIGINALS} wide={false} onMovieClick={handleMovieSelect} />
                 <ContentRow title="Continue Watching" items={CONTINUE_WATCHING} wide={true} onMovieClick={handleMovieSelect} />
               </>
             ) : (
@@ -765,8 +784,8 @@ const App: React.FC = () => {
         return renderSettingsContent();
       case 'Downloads':
         return <Downloads movies={downloadedMovies} onRemove={handleRemoveDownload} onMovieClick={handleMovieSelect} />;
-      case 'Films':
-        return <FilmsPage onMovieClick={handleMovieSelect} />;
+      case 'News':
+        return <NewsPage onMovieClick={handleMovieSelect} />;
       case 'Watchlist':
         return <Watchlist watchlistIds={watchlistIds} onRemove={handleRemoveFromWatchlist} onMovieClick={handleMovieSelect} />;
       default:

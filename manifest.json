@@ -1,6 +1,6 @@
 {
-  "name": "SAHAN FILMS ™",
-  "short_name": "SahanFilms",
+  "name": "RIYOBOX",
+  "short_name": "RIYOBOX",
   "description": "A feature-rich clone of the Amazon Prime Video mobile application, built with React and Tailwind CSS, now with full offline PWA support.",
   "start_url": ".",
   "display": "standalone",

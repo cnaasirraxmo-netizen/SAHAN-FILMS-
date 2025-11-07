@@ -21,6 +21,7 @@ const APP_SHELL_URLS = [
   '/assets/video.ts',
   // components
   '/components/Auth.tsx',
+  '/components/Onboarding.tsx',
   '/components/BottomNav.tsx',
   '/components/CategoryNav.tsx',
   '/components/ContentRow.tsx',
@@ -33,7 +34,7 @@ const APP_SHELL_URLS = [
   '/components/Profiles.tsx',
   '/components/ProfileDetails.tsx',
   '/components/Downloads.tsx',
-  '/components/FilmsPage.tsx',
+  '/components/NewsPage.tsx',
   '/components/CategoryPage.tsx',
   '/components/CastPlayer.tsx',
   '/components/VideoPlayer.tsx',
@@ -195,7 +196,7 @@ sw.addEventListener('message', (event: ExtendableMessageEvent) => {
 
 // --- PUSH NOTIFICATIONS ---
 sw.addEventListener('push', (event: PushEvent) => {
-  const data = event.data ? event.data.json() : { title: 'SAHAN FILMS ™', body: 'A new movie has been added!', icon: '/icons/icon-192x192.png' };
+  const data = event.data ? event.data.json() : { title: 'RIYOBOX', body: 'A new movie has been added!', icon: '/icons/icon-192x192.png' };
   const options = {
     body: data.body,
     icon: data.icon || '/icons/icon-192x192.png',
