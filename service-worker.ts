@@ -38,7 +38,6 @@ const APP_SHELL_URLS = [
   '/components/CategoryPage.tsx',
   '/components/CastPlayer.tsx',
   '/components/VideoPlayer.tsx',
-  '/components/Watchlist.tsx',
   '/components/SearchResults.tsx',
   '/components/SplashScreen.tsx',
   '/components/SubscriptionsPage.tsx',

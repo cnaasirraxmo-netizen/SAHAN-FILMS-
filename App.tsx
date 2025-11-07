@@ -26,7 +26,6 @@ import VideoPlayer from './components/VideoPlayer';
 import CastPlayer from './components/CastPlayer';
 import CategoryPage from './components/CategoryPage';
 import NewsPage from './components/NewsPage';
-import Watchlist from './components/Watchlist';
 import AdminPage from './components/AdminPage';
 import SplashScreen from './components/SplashScreen';
 import Auth from './components/Auth';
@@ -173,7 +172,6 @@ const App: React.FC = () => {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [activeProfileFeature, setActiveProfileFeature] = useState<string | null>(null);
   const [downloadedMovies, setDownloadedMovies] = useState<Movie[]>([]);
-  const [watchlistIds, setWatchlistIds] = useState<number[]>([]);
   const [downloadQuality, setDownloadQuality] = useState<DownloadQuality>('Better');
   const [autoDelete, setAutoDelete] = useState<boolean>(false);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
@@ -304,9 +302,6 @@ const App: React.FC = () => {
         const storedDownloads = localStorage.getItem('downloadedMovies');
         if (storedDownloads) setDownloadedMovies(JSON.parse(storedDownloads));
         
-        const storedWatchlist = localStorage.getItem('watchlistIds');
-        if (storedWatchlist) setWatchlistIds(JSON.parse(storedWatchlist));
-
         const storedQuality = localStorage.getItem('downloadQuality') as DownloadQuality;
         if (storedQuality) setDownloadQuality(storedQuality);
 
@@ -468,10 +463,6 @@ const App: React.FC = () => {
   }, [downloadedMovies]);
 
   useEffect(() => {
-      localStorage.setItem('watchlistIds', JSON.stringify(watchlistIds));
-  }, [watchlistIds]);
-
-  useEffect(() => {
       localStorage.setItem('downloadQuality', downloadQuality);
   }, [downloadQuality]);
 
@@ -536,17 +527,6 @@ const App: React.FC = () => {
 
         return [...prev, downloadedMovie];
     });
-  };
-
-  const handleAddToWatchlist = (movieId: number) => {
-    setWatchlistIds(prev => {
-        if (prev.includes(movieId)) return prev;
-        return [...prev, movieId];
-    });
-  };
-
-  const handleRemoveFromWatchlist = (movieId: number) => {
-      setWatchlistIds(prev => prev.filter(id => id !== movieId));
   };
 
   const handleRemoveDownload = (movie: Movie) => {
@@ -743,9 +723,6 @@ const App: React.FC = () => {
                     onDownload={handleDownloadMovie} 
                     downloadedMovies={downloadedMovies} 
                     onPlay={handlePlayMovie}
-                    watchlistIds={watchlistIds}
-                    onAddToWatchlist={handleAddToWatchlist}
-                    onRemoveFromWatchlist={handleRemoveFromWatchlist}
                 />;
     }
     
@@ -784,10 +761,8 @@ const App: React.FC = () => {
         return renderSettingsContent();
       case 'Downloads':
         return <Downloads movies={downloadedMovies} onRemove={handleRemoveDownload} onMovieClick={handleMovieSelect} />;
-      case 'News':
+      case 'Anime':
         return <NewsPage onMovieClick={handleMovieSelect} />;
-      case 'Watchlist':
-        return <Watchlist watchlistIds={watchlistIds} onRemove={handleRemoveFromWatchlist} onMovieClick={handleMovieSelect} />;
       default:
         return (
             <div className="p-4 text-center text-[var(--text-color-secondary)] mt-8">

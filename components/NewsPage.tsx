@@ -3,7 +3,7 @@ import { Movie } from '../types';
 import MovieCard from './MovieCard';
 
 const API_KEY = '1d44af015449e83f4394af349d414c64';
-const API_URL = 'https://api.themoviedb.org/3/movie/popular';
+const API_URL = 'https://api.themoviedb.org/3/discover/movie';
 
 interface NewsPageProps {
   onMovieClick: (movie: Movie) => void;
@@ -15,14 +15,14 @@ const NewsPage: React.FC<NewsPageProps> = ({ onMovieClick }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchNews = async () => {
+    const fetchAnime = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_URL}?api_key=${API_KEY}&language=en-US&page=1`);
+        const response = await fetch(`${API_URL}?api_key=${API_KEY}&language=en-US&sort_by=popularity.desc&include_adult=false&page=1&with_genres=16&with_origin_country=JP`);
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.status_message || 'Failed to fetch news.');
+          throw new Error(errorData.status_message || 'Failed to fetch anime.');
         }
         const data = await response.json();
         const mappedResults: Movie[] = data.results
@@ -36,6 +36,7 @@ const NewsPage: React.FC<NewsPageProps> = ({ onMovieClick }) => {
             year: movie.release_date ? parseInt(movie.release_date.substring(0, 4)) : 0,
             rating: movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A',
             duration: '', // Duration is not available in this API endpoint
+            videoUrl_480p: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
           }));
         setMovies(mappedResults);
       } catch (err: any) {
@@ -45,7 +46,7 @@ const NewsPage: React.FC<NewsPageProps> = ({ onMovieClick }) => {
       }
     };
 
-    fetchNews();
+    fetchAnime();
   }, []);
 
   if (loading) {
@@ -67,7 +68,7 @@ const NewsPage: React.FC<NewsPageProps> = ({ onMovieClick }) => {
 
   return (
     <div className="p-4 animate-fade-in">
-      <h1 className="text-2xl font-bold text-[var(--text-color)] mb-4">Trending & Popular Titles</h1>
+      <h1 className="text-2xl font-bold text-[var(--text-color)] mb-4">Popular Anime</h1>
       <div className="grid grid-cols-3 gap-3">
         {movies.map(movie => (
           <MovieCard key={movie.id} movie={movie} onClick={onMovieClick} />

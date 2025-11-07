@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 // FIX: Import ChevronLeftIcon to resolve 'Cannot find name' error.
-import { RIYOBOXLogo, GoogleIcon, EmailIcon, LockIcon, EyeIcon, EyeOffIcon, UserIcon, PhoneIcon, PencilIcon, ChevronLeftIcon } from './Icons';
+import { RIYOBOXLogo, GoogleIcon, EmailIcon, LockIcon, EyeIcon, EyeOffIcon, UserIcon, PhoneIcon, PencilIcon, ChevronLeftIcon, TicketIcon } from './Icons';
 import { auth } from '../firebase';
 // FIX: Import firebase compat to resolve module export errors for auth functions.
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
+
+const avatars = Array.from({ length: 9 }, (_, i) => `https://i.pravatar.cc/150?img=${i + 1}`);
 
 const InputField: React.FC<{
     icon: React.FC<{className?: string}>;
@@ -50,6 +52,7 @@ const Auth: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [rePasswordVisible, setRePasswordVisible] = useState(false);
+    const [selectedAvatar, setSelectedAvatar] = useState(avatars[8]);
 
     const handleAuthError = (err: any) => {
         let errorMessage = err.message?.replace('Firebase: ', '') || 'An unknown error occurred.';
@@ -113,7 +116,7 @@ const Auth: React.FC = () => {
                 if (userCredential.user) {
                   await userCredential.user.updateProfile({
                       displayName: name,
-                      photoURL: `https://i.pravatar.cc/150?u=${userCredential.user.uid}`
+                      photoURL: selectedAvatar,
                   });
                 }
             }
@@ -215,9 +218,24 @@ const Auth: React.FC = () => {
 
     const renderSignupView = () => (
          <>
-            <h1 className="text-4xl font-bold mt-4 text-center mb-6">
-                Create Account
+            <h1 className="text-4xl font-bold mt-4 text-center mb-6 flex items-center justify-center space-x-2">
+                <span>Create</span>
+                <TicketIcon className="w-10 h-10 text-amber-400"/>
+                <span>Account</span>
             </h1>
+
+            <div className="flex flex-col items-center mb-6">
+                <div className="relative">
+                    <img src={selectedAvatar} alt="Selected Avatar" className="w-24 h-24 rounded-full object-cover border-4 border-gray-700" />
+                    <button 
+                        type="button" 
+                        onClick={() => document.getElementById('avatar-grid')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="absolute bottom-0 right-0 bg-amber-400 rounded-full p-1.5 border-2 border-black hover:bg-amber-300 transition-colors"
+                    >
+                        <PencilIcon className="w-4 h-4 text-black" />
+                    </button>
+                </div>
+            </div>
 
             {renderErrorMessage()}
             
@@ -242,9 +260,26 @@ const Auth: React.FC = () => {
                     onIconClick={() => setRePasswordVisible(!rePasswordVisible)}
                     iconClickable={rePasswordVisible}
                 />
+                
+                <div id="avatar-grid" className="pt-4">
+                    <p className="text-center text-gray-400 mb-4">Pick an Avatar</p>
+                    <div className="grid grid-cols-3 gap-4">
+                        {avatars.map(avatarUrl => (
+                            <button
+                                type="button"
+                                key={avatarUrl}
+                                onClick={() => setSelectedAvatar(avatarUrl)}
+                                className={`rounded-full overflow-hidden transition-all duration-200 ${selectedAvatar === avatarUrl ? 'ring-4 ring-amber-400 scale-110' : 'hover:ring-2 hover:ring-gray-600'}`}
+                            >
+                                <img src={avatarUrl} alt="Avatar option" className="w-full h-full object-cover"/>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
 
                 <button type="submit" disabled={loading} className="w-full bg-amber-400 text-black font-bold py-4 rounded-full text-lg hover:bg-amber-300 transition-colors disabled:bg-amber-600 disabled:cursor-not-allowed mt-6 !mt-6">
-                    {loading ? 'Creating...' : 'Create Account'}
+                    {loading ? 'Creating...' : 'Confirm'}
                 </button>
             </form>
 
@@ -300,7 +335,9 @@ const Auth: React.FC = () => {
                 </div>
             )}
             <div className="w-full flex-grow flex flex-col justify-center">
-                {renderContent()}
+                <div className="overflow-y-auto no-scrollbar py-8">
+                    {renderContent()}
+                </div>
             </div>
         </div>
     );

@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { Movie } from '../types';
-import { ChevronLeftIcon, PlayIcon, DownloadIcon, AddToWatchlistIcon, CheckIcon } from './Icons';
+import { ChevronLeftIcon, PlayIcon, DownloadIcon, CheckIcon } from './Icons';
 import { ThemeContext } from '../App';
 
 interface MovieDetailsProps {
@@ -9,12 +9,9 @@ interface MovieDetailsProps {
   onDownload: (movie: Movie) => void;
   downloadedMovies: Movie[];
   onPlay: () => void;
-  watchlistIds: number[];
-  onAddToWatchlist: (movieId: number) => void;
-  onRemoveFromWatchlist: (movieId: number) => void;
 }
 
-const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, downloadedMovies, onPlay, watchlistIds, onAddToWatchlist, onRemoveFromWatchlist }) => {
+const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, downloadedMovies, onPlay }) => {
     const { theme } = useContext(ThemeContext);
     const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
     
@@ -23,7 +20,6 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, 
         : 'from-gray-900/60 via-gray-900/30 to-transparent';
 
     const isDownloaded = downloadedMovies.some(m => m.id === movie.id);
-    const isWatchlisted = watchlistIds.includes(movie.id);
 
     const handleDownloadClick = () => {
         if (isDownloaded || downloadProgress !== null) return;
@@ -118,22 +114,13 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onBack, onDownload, 
             <span>Play</span>
         </button>
         
-        <div className="flex items-center space-x-2 my-4">
-            <button
-                onClick={handleDownloadClick}
-                disabled={isDownloaded || downloadProgress !== null}
-                className="flex-grow bg-gray-600/50 text-white font-bold py-3 rounded-md flex items-center justify-center space-x-2 px-4 disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-                {getDownloadButtonContent()}
-            </button>
-            <button
-                onClick={() => isWatchlisted ? onRemoveFromWatchlist(movie.id) : onAddToWatchlist(movie.id)}
-                className="flex-shrink-0 bg-gray-600/50 text-white p-3.5 rounded-md"
-                aria-label={isWatchlisted ? 'Remove from watchlist' : 'Add to watchlist'}
-            >
-                {isWatchlisted ? <CheckIcon className="w-6 h-6 text-sky-400" /> : <AddToWatchlistIcon className="w-6 h-6" />}
-            </button>
-        </div>
+        <button
+            onClick={handleDownloadClick}
+            disabled={isDownloaded || downloadProgress !== null}
+            className="w-full bg-gray-600/50 text-white font-bold py-3 rounded-md flex items-center justify-center space-x-2 my-4 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+            {getDownloadButtonContent()}
+        </button>
 
 
         <p className="text-[var(--text-color)] text-base leading-relaxed my-4">
