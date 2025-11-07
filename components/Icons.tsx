@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 
 interface IconProps {
@@ -352,7 +353,7 @@ export const LockIcon: React.FC<IconProps> = ({ className }) => (
 export const EyeIcon: React.FC<IconProps> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542 7z" />
     </svg>
 );
 
@@ -365,5 +366,26 @@ export const EyeOffIcon: React.FC<IconProps> = ({ className }) => (
 export const PhoneIcon: React.FC<IconProps> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+    </svg>
+);
+
+export const ForgotPasswordIllustration: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+      <g opacity="0.1" fill="none" stroke="#FBBF24" strokeWidth="2">
+        <circle cx="20" cy="20" r="10" />
+        <path d="M 80 60 l -10 10 l 5 -15 z" />
+        <rect x="70" y="10" width="20" height="20" rx="4" />
+      </g>
+      <path d="M10,75 C 20,60 80,60 90,75" fill="none" stroke="#FBBF24" strokeWidth="3" strokeLinecap="round"/>
+      <g transform="translate(0, 5)">
+          <path d="M22,58 H78 V32 C78,20 68,15 60,15 H40 C32,15 22,20 22,32 Z" fill="#222" stroke="#444" strokeWidth="1" />
+          <path d="M35,30 A 20 20 0 0 1 65 30" fill="none" stroke="#E0BBAA" strokeWidth="3" strokeLinecap="round"/>
+          <circle cx="42" cy="42" r="3" fill="#FFF"/>
+          <circle cx="58" cy="42" r="3" fill="#FFF"/>
+          <rect x="65" y="10" width="30" height="40" rx="3" fill="#FFF" stroke="#DDD" strokeWidth="0.5" />
+          <circle cx="80" cy="20" r="5" stroke="#FBBF24" strokeWidth="1.5" fill="#FDE047"/>
+          <path d="M80 25 V29 L 82 32" fill="none" stroke="#FBBF24" strokeWidth="1.5" />
+          <rect x="70" y="35" width="20" height="3" fill="#EEE" rx="1"/>
+      </g>
     </svg>
 );

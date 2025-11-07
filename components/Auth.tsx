@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 // FIX: Import ChevronLeftIcon to resolve 'Cannot find name' error.
-import { RIYOBOXLogo, GoogleIcon, EmailIcon, LockIcon, EyeIcon, EyeOffIcon, UserIcon, PhoneIcon, PencilIcon, ChevronLeftIcon, TicketIcon } from './Icons';
+import { RIYOBOXLogo, GoogleIcon, EmailIcon, LockIcon, EyeIcon, EyeOffIcon, UserIcon, PhoneIcon, PencilIcon, ChevronLeftIcon, TicketIcon, ForgotPasswordIllustration } from './Icons';
 import { auth } from '../firebase';
 // FIX: Import firebase compat to resolve module export errors for auth functions.
 import firebase from 'firebase/compat/app';
@@ -87,6 +87,15 @@ const Auth: React.FC = () => {
         setName('');
         setIsAvatarGridVisible(false);
     };
+    
+    const handleBack = () => {
+        if (authView === 'reset') {
+            setAuthView('login');
+        } else {
+            setAuthView('welcome');
+        }
+        resetState();
+    };
 
     const handleEmailPasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -159,18 +168,20 @@ const Auth: React.FC = () => {
     };
 
     const renderWelcomeView = () => (
-        <div className="text-center flex flex-col items-center h-full py-20">
-            <RIYOBOXLogo className="h-10 text-white" />
-            <div className="w-full max-w-xs space-y-4 mt-auto">
+        <div className="flex flex-col items-center h-full text-center">
+            <div className="flex-grow flex items-center justify-center">
+                <RIYOBOXLogo className="h-14 text-white" />
+            </div>
+            <div className="w-full max-w-sm space-y-4 pb-6 flex-shrink-0">
                 <button 
                     onClick={() => { setAuthView('login'); resetState(); }} 
-                    className="w-full bg-amber-400 text-black font-bold py-4 rounded-full text-lg hover:bg-amber-300 transition-colors"
+                    className="w-full bg-amber-400 text-black font-bold py-3.5 rounded-full text-lg hover:bg-amber-300 transition-colors shadow-lg shadow-amber-500/20"
                 >
                     Login
                 </button>
                 <button 
                     onClick={() => { setAuthView('signup'); resetState(); }} 
-                    className="w-full border-2 border-amber-400 text-amber-400 font-bold py-4 rounded-full text-lg hover:bg-amber-400/10 transition-colors"
+                    className="w-full border-2 border-amber-400 text-amber-400 font-bold py-3.5 rounded-full text-lg hover:bg-amber-400/10 transition-colors"
                 >
                     Sign Up
                 </button>
@@ -179,7 +190,7 @@ const Auth: React.FC = () => {
     );
 
     const renderLoginView = () => (
-        <>
+        <div className="py-8">
             <RIYOBOXLogo className="h-10 text-white mx-auto mb-16" />
             {renderErrorMessage()}
             
@@ -212,11 +223,11 @@ const Auth: React.FC = () => {
                     Create One
                 </button>
             </p>
-        </>
+        </div>
     );
 
     const renderSignupView = () => (
-         <>
+         <div className="py-8">
             <RIYOBOXLogo className="h-10 text-white mx-auto mb-8" />
             <div className="flex flex-col items-center mb-6">
                 <div className="relative">
@@ -288,30 +299,35 @@ const Auth: React.FC = () => {
                     Login
                 </button>
             </p>
-        </>
+        </div>
     );
 
     const renderResetPasswordView = () => (
-         <>
-            <RIYOBOXLogo className="h-10 text-white mx-auto mb-16" />
-            <h1 className="text-3xl font-bold mb-2 text-center">Reset Password</h1>
-            <p className="text-gray-400 text-center mb-6 text-sm">Enter your email to receive a reset link.</p>
+         <div className="flex flex-col h-full">
+            <h1 className="text-2xl font-bold text-center mt-4 mb-2">Forget Password</h1>
+            <div className="flex-grow flex flex-col justify-center text-center px-2">
+                <ForgotPasswordIllustration className="w-full max-w-xs h-40 mx-auto my-4" />
+                <p className="text-gray-300 mb-6 max-w-xs mx-auto text-center">
+                    Please Enter your Email Address To Receive a Recovery Link
+                </p>
 
-            {renderErrorMessage()}
-            {successMessage && <p className="bg-green-500/20 text-green-400 text-sm p-3 rounded-md mb-4 text-center">{successMessage}</p>}
-            
-            <form onSubmit={handlePasswordReset} className="space-y-6">
-                 <InputField icon={EmailIcon} type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                <button type="submit" disabled={loading} className="w-full bg-amber-400 text-black font-bold py-4 rounded-full text-lg hover:bg-amber-300 transition-colors disabled:bg-amber-600">
-                    {loading ? 'Sending...' : 'Send Reset Link'}
-                </button>
-            </form>
-            <p className="mt-8 text-center text-gray-400">
-                <button onClick={() => { setAuthView('login'); resetState(); }} className="font-semibold text-amber-400 hover:underline">
-                    Back to Login
+                {renderErrorMessage()}
+                {successMessage && <p className="bg-green-500/20 text-green-400 text-sm p-3 rounded-md mb-4 text-center">{successMessage}</p>}
+                
+                <form onSubmit={handlePasswordReset} className="space-y-6 w-full max-w-sm mx-auto">
+                     <InputField icon={EmailIcon} type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                    <button type="submit" disabled={loading} className="w-full bg-amber-400 text-black font-bold py-4 rounded-full text-lg hover:bg-amber-300 transition-colors disabled:bg-amber-600">
+                        {loading ? 'Sending...' : 'Send Mail'}
+                    </button>
+                </form>
+            </div>
+            <p className="mt-auto pt-8 text-center text-gray-400">
+                Don't Have Account ?
+                <button onClick={() => { setAuthView('signup'); resetState(); }} className="font-semibold text-amber-400 hover:underline ml-2">
+                    Create One
                 </button>
             </p>
-        </>
+        </div>
     );
     
     const renderContent = () => {
@@ -329,13 +345,13 @@ const Auth: React.FC = () => {
         <div className="bg-black text-white h-screen w-full max-w-md mx-auto flex flex-col p-6 font-sans animate-fade-in">
             {authView !== 'welcome' && (
                 <div className="absolute top-5 left-5 z-10">
-                    <button onClick={() => { setAuthView('welcome'); resetState(); }}>
+                    <button onClick={handleBack}>
                         <ChevronLeftIcon className="w-6 h-6 text-gray-400 hover:text-white"/>
                     </button>
                 </div>
             )}
             <div className="w-full flex-grow flex flex-col justify-center">
-                <div className="overflow-y-auto no-scrollbar py-8">
+                <div className="overflow-y-auto no-scrollbar h-full">
                     {renderContent()}
                 </div>
             </div>
