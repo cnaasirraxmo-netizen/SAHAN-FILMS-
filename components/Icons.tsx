@@ -389,3 +389,30 @@ export const ForgotPasswordIllustration: React.FC<IconProps> = ({ className }) =
       </g>
     </svg>
 );
+
+// New Video Player Icons
+export const UnlockIcon: React.FC<IconProps> = ({ className, onClick }) => (
+    <svg onClick={onClick} xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+    </svg>
+);
+
+export const AudioTrackIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M8 9v6m8-6v6m-4-8v10" />
+    </svg>
+);
+
+export const PlaybackSpeedIcon: React.FC<IconProps> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 12a9.75 9.75 0 11-19.5 0 9.75 9.75 0 0119.5 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 12.75L9 9" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 12.75V18" />
+    </svg>
+);
+
+export const AspectRatioIcon: React.FC<IconProps> = ({ className, onClick }) => (
+    <svg onClick={onClick} xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+    </svg>
+);

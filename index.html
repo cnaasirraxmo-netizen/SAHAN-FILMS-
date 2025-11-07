@@ -79,6 +79,24 @@
     .animate-fade-in {
         animation: fadeIn 0.5s ease-out forwards;
     }
+    /* Custom video player progress bar thumb */
+    input[type=range].video-progress-bar::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      background: #fd5622;
+      cursor: pointer;
+      border-radius: 50%;
+      margin-top: -6px; /* Center thumb on track */
+    }
+    input[type=range].video-progress-bar::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      background: #fd5622;
+      cursor: pointer;
+      border-radius: 50%;
+    }
   </style>
 <script type="importmap">
 {

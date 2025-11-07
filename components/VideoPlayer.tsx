@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Movie } from '../types';
 import {
-  ChevronLeftIcon, PlayIcon, PauseIcon, Replay10Icon, Forward10Icon, VolumeUpIcon, VolumeOffIcon,
+  ChevronLeftIcon, PlayIcon, PauseIcon, Replay10Icon, Forward10Icon,
   SubtitlesIcon, SettingsIcon, PictureInPictureIcon, FullscreenEnterIcon, FullscreenExitIcon,
-  ReplayIcon, NextEpisodeIcon, CheckIcon, BrightnessIcon
+  ReplayIcon, NextEpisodeIcon, CheckIcon, BrightnessIcon, LockIcon, UnlockIcon,
+  AudioTrackIcon, PlaybackSpeedIcon, AspectRatioIcon,
 } from './Icons';
 
 interface VideoPlayerProps {
@@ -25,10 +26,13 @@ const vttContent = `WEBVTT
 `;
 
 type VideoQuality = '480p' | '720p' | '1080p';
+type AspectRatio = 'contain' | 'cover';
 
-const playbackRates = [0.5, 0.75, 1, 1.25, 1.5, 2];
+const playbackRates = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+const audioTracks = ['English [Original]']; // Placeholder
 
 const formatTime = (timeInSeconds: number) => {
+  if (isNaN(timeInSeconds) || timeInSeconds < 0) return '00:00';
   const date = new Date(0);
   date.setSeconds(timeInSeconds);
   const timeString = date.toISOString().substr(11, 8);
@@ -38,21 +42,21 @@ const formatTime = (timeInSeconds: number) => {
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
-  // FIX: Replaced NodeJS.Timeout with ReturnType<typeof setTimeout> for browser compatibility.
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartRef = useRef<{ x: number, y: number, time: number, type: 'none' | 'seek' | 'volume' | 'brightness' }>({ x: 0, y: 0, time: 0, type: 'none' });
 
   const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(false);
-  const [volume, setVolume] = useState(1);
-  const [playbackRate, setPlaybackRate] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [areControlsVisible, setAreControlsVisible] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<'main' | 'quality' | 'speed'>('main');
+  const [isLocked, setIsLocked] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<'quality' | 'speed' | 'subtitles' | 'audio' | null>(null);
+  
   const [activeSubtitleTrack, setActiveSubtitleTrack] = useState<'off' | 'en'>('off');
   const [videoQuality, setVideoQuality] = useState<VideoQuality>('720p');
+  const [playbackRate, setPlaybackRate] = useState(1.0);
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>('contain');
+
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPip, setIsPip] = useState(false);
   const [hasEnded, setHasEnded] = useState(false);
@@ -68,9 +72,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
     '480p': movie.videoUrl_480p,
   };
   const availableQualities = Object.keys(videoSources).filter(q => videoSources[q as VideoQuality]) as VideoQuality[];
-
   const currentVideoSrc = videoSources[videoQuality] || videoSources['480p'] || '';
-
 
   useEffect(() => {
     const vttBlob = new Blob([vttContent], { type: 'text/vtt' });
@@ -79,16 +81,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
     return () => URL.revokeObjectURL(url);
   }, []);
   
-  const hideControls = () => setAreControlsVisible(false);
+  const hideControls = () => {
+    if (!isLocked) {
+      setAreControlsVisible(false);
+    }
+    setActiveMenu(null);
+  };
 
   const resetControlsTimeout = useCallback(() => {
-    if (controlsTimeoutRef.current) {
-      clearTimeout(controlsTimeoutRef.current);
+    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    if (!isLocked) {
+      setAreControlsVisible(true);
+      controlsTimeoutRef.current = setTimeout(hideControls, 4000);
     }
-    setAreControlsVisible(true);
-    controlsTimeoutRef.current = setTimeout(hideControls, 3000);
-  }, []);
-
+  }, [isLocked]);
+  
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -101,9 +108,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
     const handleLoadedMetadata = () => {
         setDuration(video.duration);
         const savedTime = localStorage.getItem(`video-progress-${movie.id}`);
-        if (savedTime) {
-            video.currentTime = parseFloat(savedTime);
-        }
+        if (savedTime) video.currentTime = parseFloat(savedTime);
     };
     const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
     const handlePipChange = () => setIsPip(!!document.pictureInPictureElement);
@@ -148,44 +153,28 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
   }, [movie.id]);
 
   const togglePlayPause = () => {
+    if (hasEnded) return;
     if (videoRef.current) {
       videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause();
+      resetControlsTimeout();
     }
-  };
-
-  const handleSkip = (amount: number) => {
-    if (videoRef.current) videoRef.current.currentTime += amount;
   };
 
   const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (videoRef.current) videoRef.current.currentTime = Number(e.target.value);
-  };
-  
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = Number(e.target.value);
-    if (videoRef.current) videoRef.current.volume = newVolume;
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
-  };
-
-  const toggleMute = () => {
-      const newMuted = !isMuted;
-      setIsMuted(newMuted);
-      if(videoRef.current) videoRef.current.muted = newMuted;
-      if (!newMuted) setVolume(videoRef.current?.volume || 0.5);
+    resetControlsTimeout();
   };
   
   const handlePlaybackRateChange = (rate: number) => {
     if (videoRef.current) videoRef.current.playbackRate = rate;
     setPlaybackRate(rate);
-    setIsSettingsOpen(false);
+    setActiveMenu(null);
   };
   
   const handleQualityChange = (quality: VideoQuality) => {
     if (videoRef.current) {
         const currentPlayTime = videoRef.current.currentTime;
         setVideoQuality(quality);
-        // We need to wait for the src to update and then seek
         setTimeout(() => {
             if (videoRef.current) {
                 videoRef.current.currentTime = currentPlayTime;
@@ -193,16 +182,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
             }
         }, 100);
     }
-    setIsSettingsOpen(false);
+    setActiveMenu(null);
   };
   
-  const handleSubtitleChange = () => {
-    const newTrack = activeSubtitleTrack === 'off' ? 'en' : 'off';
-    setActiveSubtitleTrack(newTrack);
+  const handleSubtitleChange = (track: 'off' | 'en') => {
+    setActiveSubtitleTrack(track);
     if (videoRef.current && videoRef.current.textTracks.length > 0) {
-        videoRef.current.textTracks[0].mode = newTrack === 'en' ? 'showing' : 'hidden';
+        videoRef.current.textTracks[0].mode = track === 'en' ? 'showing' : 'hidden';
     }
-    setIsSettingsOpen(false);
+    setActiveMenu(null);
   };
 
   const toggleFullscreen = () => {
@@ -227,194 +215,197 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
     videoRef.current?.play();
   };
 
-  const showIndicator = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
-      setter(true);
-      setTimeout(() => setter(false), 1000);
+  const toggleLock = () => {
+    const nextLockedState = !isLocked;
+    setIsLocked(nextLockedState);
+    if (nextLockedState) {
+        setAreControlsVisible(true);
+        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+        controlsTimeoutRef.current = setTimeout(() => setAreControlsVisible(false), 3000);
+    } else {
+        resetControlsTimeout();
+    }
+    setActiveMenu(null);
   };
 
+  const toggleAspectRatio = () => {
+    setAspectRatio(prev => prev === 'contain' ? 'cover' : 'contain');
+  };
+
+  const handleMenuClick = (menu: 'quality' | 'speed' | 'subtitles' | 'audio', e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveMenu(activeMenu === menu ? null : menu);
+    resetControlsTimeout();
+  };
+  
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (isLocked) return;
     const touch = e.touches[0];
     touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now(), type: 'none' };
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 0) return;
+    if (isLocked || e.touches.length === 0) return;
     const touch = e.touches[0];
     const dx = touch.clientX - touchStartRef.current.x;
     const dy = touch.clientY - touchStartRef.current.y;
 
     if (touchStartRef.current.type === 'none') {
-        if (Math.abs(dx) > 10) touchStartRef.current.type = 'seek';
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) touchStartRef.current.type = 'seek';
         else if (Math.abs(dy) > 10) {
             if (touchStartRef.current.x < window.innerWidth / 2) touchStartRef.current.type = 'brightness';
             else touchStartRef.current.type = 'volume';
         }
     }
-    
-    if (touchStartRef.current.type === 'seek' && videoRef.current) {
-        const seekAmount = (dx / window.innerWidth) * 60; // swipe across screen = 60s seek
-        videoRef.current.currentTime = Math.max(0, Math.min(duration, currentTime + seekAmount));
-        touchStartRef.current.x = touch.clientX;
-    } else if (touchStartRef.current.type === 'volume') {
-        const newVolume = Math.max(0, Math.min(1, volume - dy / 200));
-        if (videoRef.current) videoRef.current.volume = newVolume;
-        setVolume(newVolume);
-        setIsMuted(newVolume === 0);
-        touchStartRef.current.y = touch.clientY;
-        showIndicator(setShowVolumeIndicator);
-    } else if (touchStartRef.current.type === 'brightness') {
-        const newBrightness = Math.max(0.2, Math.min(1.5, brightness - dy / 200));
-        setBrightness(newBrightness);
-        touchStartRef.current.y = touch.clientY;
-        showIndicator(setShowBrightnessIndicator);
-    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (isLocked) {
+        if (!areControlsVisible) setAreControlsVisible(true);
+        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+        controlsTimeoutRef.current = setTimeout(() => setAreControlsVisible(false), 3000);
+        return;
+    }
     const touchEndTime = Date.now();
     if (touchStartRef.current.type === 'none' && touchEndTime - touchStartRef.current.time < 300) {
         setAreControlsVisible(v => !v);
+        if(areControlsVisible) setActiveMenu(null); else resetControlsTimeout();
     }
     touchStartRef.current.type = 'none';
   };
 
-  const renderSettings = () => (
-    <div className="absolute bottom-16 right-4 bg-black/80 rounded-lg p-2 text-white w-48 z-20">
-      {settingsTab === 'main' && (
-        <>
-          <button onClick={() => setSettingsTab('quality')} className="w-full text-left p-2 hover:bg-white/10 rounded flex justify-between">
-            <span>Quality</span> <span className="text-gray-400">{videoQuality} &gt;</span>
-          </button>
-          <button onClick={() => setSettingsTab('speed')} className="w-full text-left p-2 hover:bg-white/10 rounded flex justify-between">
-            <span>Speed</span> <span className="text-gray-400">{playbackRate}x &gt;</span>
-          </button>
-          <button onClick={handleSubtitleChange} className="w-full text-left p-2 hover:bg-white/10 rounded flex justify-between">
-            <span>Subtitles</span> <span className="text-gray-400">{activeSubtitleTrack === 'en' ? 'On' : 'Off'}</span>
-          </button>
-        </>
-      )}
-      {settingsTab === 'quality' && (
-        <div>
-          <button onClick={() => setSettingsTab('main')} className="w-full text-left p-2 text-gray-400">&lt; Quality</button>
-          {availableQualities.map((q) => (
-            <button key={q} onClick={() => handleQualityChange(q)} className="w-full text-left p-2 hover:bg-white/10 rounded flex items-center">
-              {q} {videoQuality === q && <CheckIcon className="w-4 h-4 ml-auto text-sky-400" />}
-            </button>
-          ))}
-        </div>
-      )}
-      {settingsTab === 'speed' && (
-        <div>
-          <button onClick={() => setSettingsTab('main')} className="w-full text-left p-2 text-gray-400">&lt; Speed</button>
-          {playbackRates.map((r) => (
-            <button key={r} onClick={() => handlePlaybackRateChange(r)} className="w-full text-left p-2 hover:bg-white/10 rounded flex items-center">
-              {r}x {playbackRate === r && <CheckIcon className="w-4 h-4 ml-auto text-sky-400" />}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+  const ControlButton: React.FC<{icon: React.FC<{className?: string}>, label: string, onClick?: (e: React.MouseEvent) => void}> = ({ icon: Icon, label, onClick }) => (
+    <button onClick={onClick} className="flex flex-col items-center justify-center w-16 text-xs text-gray-300 hover:text-white transition-colors space-y-1">
+        <Icon className="w-5 h-5" />
+        <span>{label}</span>
+    </button>
   );
 
+  const renderActiveMenu = () => {
+    if (!activeMenu) return null;
+    let title = '';
+    let options: {label: string, action: () => void, active: boolean}[] = [];
+
+    switch (activeMenu) {
+        case 'quality':
+            title = 'Quality';
+            options = availableQualities.map(q => ({ label: q, action: () => handleQualityChange(q), active: videoQuality === q }));
+            break;
+        case 'speed':
+            title = 'Playback Speed';
+            options = playbackRates.map(r => ({ label: `${r}x`, action: () => handlePlaybackRateChange(r), active: playbackRate === r }));
+            break;
+        case 'subtitles':
+            title = 'Subtitles';
+            options = [
+                { label: 'Off', action: () => handleSubtitleChange('off'), active: activeSubtitleTrack === 'off' },
+                { label: 'English', action: () => handleSubtitleChange('en'), active: activeSubtitleTrack === 'en' },
+            ];
+            break;
+        case 'audio':
+             title = 'Audio Track';
+             options = audioTracks.map(t => ({ label: t, action: () => setActiveMenu(null), active: true }));
+             break;
+    }
+
+    return (
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-sm rounded-lg p-3 text-white w-56 z-30 pointer-events-auto animate-fade-in" onClick={e => e.stopPropagation()}>
+            <h4 className="font-semibold text-center mb-2 border-b border-gray-600 pb-2">{title}</h4>
+            <ul className="space-y-1">
+                {options.map(opt => (
+                     <li key={opt.label}>
+                         <button onClick={opt.action} className={`w-full text-left p-2 hover:bg-white/10 rounded flex items-center justify-between text-sm ${opt.active ? 'font-bold text-sky-400' : ''}`}>
+                             <span>{opt.label}</span>
+                             {opt.active && <CheckIcon className="w-4 h-4" />}
+                         </button>
+                     </li>
+                ))}
+            </ul>
+        </div>
+    );
+  };
+  
   return (
     <div
       ref={playerContainerRef}
-      className="fixed inset-0 bg-black z-50 flex items-center justify-center text-white"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onClick={() => isSettingsOpen && setIsSettingsOpen(false)}
+      className="fixed inset-0 bg-black z-50 flex items-center justify-center text-white select-none"
+      onClick={() => { if (!isLocked) { setAreControlsVisible(v => !v); if(areControlsVisible) setActiveMenu(null); else resetControlsTimeout(); }}}
+      onDoubleClick={toggleFullscreen}
     >
       <video
         ref={videoRef}
-        key={currentVideoSrc} // Force re-render on src change
+        key={currentVideoSrc}
         src={currentVideoSrc}
         autoPlay
-        className="w-full h-full object-contain"
-        style={{ filter: `brightness(${brightness})`}}
-        onDoubleClick={toggleFullscreen}
-        onClick={(e) => { e.stopPropagation(); if (!isSettingsOpen) setAreControlsVisible(v => !v); }}
+        className="w-full h-full"
+        style={{ filter: `brightness(${brightness})`, objectFit: aspectRatio }}
+        onClick={e => e.stopPropagation()}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {subtitleUrl && <track kind="subtitles" srcLang="en" label="English" src={subtitleUrl} default={activeSubtitleTrack === 'en'} />}
       </video>
 
-      {/* Gesture Indicators */}
-       {showVolumeIndicator && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 rounded-lg p-4 flex flex-col items-center space-y-2">
-          <VolumeUpIcon className="w-10 h-10" />
-          <div className="w-24 h-2 bg-white/30 rounded-full"><div className="h-full bg-white rounded-full" style={{width: `${volume * 100}%`}}></div></div>
-        </div>}
-       {showBrightnessIndicator && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 rounded-lg p-4 flex flex-col items-center space-y-2">
-          <BrightnessIcon className="w-10 h-10" />
-          <div className="w-24 h-2 bg-white/30 rounded-full"><div className="h-full bg-white rounded-full" style={{width: `${(brightness - 0.2) / 1.3 * 100}%`}}></div></div>
-        </div>}
+      {/* Lock Overlay */}
+      {isLocked && (
+        <div 
+          className={`absolute inset-0 z-40 transition-opacity duration-300 ${areControlsVisible ? 'opacity-100' : 'opacity-0'}`}
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <button onClick={toggleLock} className="p-3 bg-black/50 rounded-full">
+              <UnlockIcon className="w-8 h-8"/>
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* Controls Overlay */}
-      <div className={`absolute inset-0 transition-opacity duration-300 ${areControlsVisible ? 'opacity-100' : 'opacity-0'} bg-gradient-to-t from-black/70 via-transparent to-black/70 pointer-events-none`}>
-        <div className="absolute inset-0 pointer-events-auto">
+      <div className={`absolute inset-0 transition-opacity duration-300 z-20 ${areControlsVisible && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div className="absolute inset-0 pointer-events-auto" onClick={() => activeMenu && setActiveMenu(null)}>
             {/* Top Controls */}
-            <div className="absolute top-0 left-0 right-0 p-4 flex items-center">
-              <button onClick={onClose}><ChevronLeftIcon className="w-8 h-8" /></button>
-              <h2 className="text-xl font-bold ml-4 truncate">{movie.title}</h2>
-            </div>
-
-            {/* Middle Controls */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center space-x-12">
-              <button onClick={() => handleSkip(-10)}><Replay10Icon className="w-10 h-10" /></button>
-              <button onClick={togglePlayPause}>
-                {isPlaying ? <PauseIcon className="w-16 h-16" /> : <PlayIcon className="w-16 h-16" />}
-              </button>
-              <button onClick={() => handleSkip(10)}><Forward10Icon className="w-10 h-10" /></button>
+            <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent">
+              <div className="flex items-center space-x-4 min-w-0">
+                <button onClick={onClose}><ChevronLeftIcon className="w-7 h-7" /></button>
+                <h2 className="text-lg font-semibold truncate">{movie.title}</h2>
+              </div>
+              <div className="flex items-center space-x-5">
+                  <button onClick={toggleLock}><LockIcon className="w-6 h-6"/></button>
+                  <button onClick={toggleAspectRatio}><AspectRatioIcon className="w-6 h-6"/></button>
+              </div>
             </div>
 
             {/* Bottom Controls */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm">{formatTime(currentTime)}</span>
+            <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2 bg-gradient-to-t from-black/60 to-transparent">
+              <div className="flex items-center space-x-3">
+                <span className="text-xs font-mono">{formatTime(currentTime)}</span>
                 <input
-                  type="range"
-                  min="0"
-                  max={duration || 1}
-                  value={currentTime}
+                  type="range" min="0" max={duration || 1} value={currentTime}
                   onChange={handleProgressChange}
-                  className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer"
-                  style={{
-                      background: `linear-gradient(to right, #38bdf8 ${ (currentTime / (duration || 1)) * 100 }%, #fff3 ${ (currentTime / (duration || 1)) * 100 }%)`
+                  className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer video-progress-bar"
+                   style={{
+                      background: `linear-gradient(to right, #fd5622 ${ (currentTime / (duration || 1)) * 100 }%, #ffffff33 ${ (currentTime / (duration || 1)) * 100 }%)`
                   }}
                 />
-                <span className="text-sm">{formatTime(duration || 0)}</span>
+                <span className="text-xs font-mono">{formatTime(duration || 0)}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                    <button onClick={toggleMute}>{isMuted || volume === 0 ? <VolumeOffIcon className="w-6 h-6" /> : <VolumeUpIcon className="w-6 h-6" />}</button>
-                    <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.05"
-                        value={isMuted ? 0 : volume}
-                        onChange={handleVolumeChange}
-                        className="w-24 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer"
-                        style={{
-                            background: `linear-gradient(to right, #fff ${ (isMuted ? 0 : volume) * 100 }%, #fff3 ${ (isMuted ? 0 : volume) * 100 }%)`
-                        }}
-                    />
-                </div>
-                <div className="flex items-center space-x-4">
-                    <button onClick={(e) => { e.stopPropagation(); setIsSettingsOpen(v => !v); setSettingsTab('main'); }}><SettingsIcon className="w-6 h-6" /></button>
-                    {document.pictureInPictureEnabled && <button onClick={togglePiP}><PictureInPictureIcon className="w-6 h-6" /></button>}
-                    <button onClick={toggleFullscreen}>
-                        {isFullscreen ? <FullscreenExitIcon className="w-6 h-6" /> : <FullscreenEnterIcon className="w-6 h-6" />}
-                    </button>
-                </div>
+              <div className="flex items-center justify-between mt-1">
+                 <ControlButton icon={AudioTrackIcon} label="Auto" onClick={(e) => handleMenuClick('audio', e)} />
+                 <ControlButton icon={SubtitlesIcon} label={activeSubtitleTrack === 'en' ? 'On' : 'None'} onClick={(e) => handleMenuClick('subtitles', e)}/>
+                 <ControlButton icon={PlaybackSpeedIcon} label={`${playbackRate}x`} onClick={(e) => handleMenuClick('speed', e)}/>
+                 {document.pictureInPictureEnabled && <ControlButton icon={PictureInPictureIcon} label="PIP" onClick={togglePiP} />}
+                 <ControlButton icon={SettingsIcon} label={videoQuality} onClick={(e) => handleMenuClick('quality', e)}/>
+                 <ControlButton icon={isFullscreen ? FullscreenExitIcon : FullscreenEnterIcon} label="Fit" onClick={toggleFullscreen}/>
               </div>
             </div>
 
-            {isSettingsOpen && renderSettings()}
+            {renderActiveMenu()}
         </div>
       </div>
       
       {hasEnded && (
-        <div className="absolute inset-0 bg-black/80 flex items-center justify-center space-x-16 pointer-events-auto">
+        <div className="absolute inset-0 bg-black/80 flex items-center justify-center space-x-16 pointer-events-auto z-30">
             <button onClick={handleReplay} className="flex flex-col items-center space-y-2 text-gray-300 hover:text-white">
                 <ReplayIcon className="w-16 h-16"/>
                 <span>Replay</span>
