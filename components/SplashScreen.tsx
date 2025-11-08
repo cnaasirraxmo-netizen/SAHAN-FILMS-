@@ -19,7 +19,7 @@ const SplashScreen: React.FC = () => {
       }`}
     >
       <div className="animate-fade-in-scale-up flex flex-col items-center">
-        <RIYOBOXLogo className="w-48 h-auto" />
+        <RIYOBOXLogo className="w-48 h-auto animate-glow" />
       </div>
     </div>
   );

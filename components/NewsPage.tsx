@@ -52,7 +52,11 @@ const NewsPage: React.FC<NewsPageProps> = ({ onMovieClick }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-full mt-16">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400"></div>
+        <div className="loader-dots flex space-x-2">
+          <div className="w-3 h-3 bg-sky-400 rounded-full dot-1"></div>
+          <div className="w-3 h-3 bg-sky-400 rounded-full dot-2"></div>
+          <div className="w-3 h-3 bg-sky-400 rounded-full dot-3"></div>
+        </div>
       </div>
     );
   }
