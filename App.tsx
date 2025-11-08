@@ -257,20 +257,54 @@ const App: React.FC = () => {
     };
     
     const handleDownload = (movie: Movie) => {
+      const quality = downloadSettings.quality;
       const qualityMultiplier = { Good: 0.6, Better: 1, Best: 1.5 };
-      const downloadedMovie = { ...movie, downloadQuality: downloadSettings.quality, size: (movie.baseSize || 1) * qualityMultiplier[downloadSettings.quality] };
+      const downloadedMovie = { ...movie, downloadQuality: quality, size: (movie.baseSize || 1) * qualityMultiplier[quality] };
       setDownloadedMovies(prev => [...prev, downloadedMovie]);
+      
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          const videoUrl = downloadedMovie.videoUrl_1080p;
-          if(videoUrl) navigator.serviceWorker.controller.postMessage({ type: 'CACHE_VIDEO', url: videoUrl });
+          let videoUrlToCache: string | undefined;
+          switch (quality) {
+              case 'Good':
+                  videoUrlToCache = movie.videoUrl_480p;
+                  break;
+              case 'Best':
+                  videoUrlToCache = movie.videoUrl_1080p;
+                  break;
+              case 'Better':
+              default:
+                  videoUrlToCache = movie.videoUrl_720p;
+                  break;
+          }
+
+          if (videoUrlToCache) {
+            navigator.serviceWorker.controller.postMessage({ type: 'CACHE_VIDEO', url: videoUrlToCache });
+          }
       }
     };
 
     const handleRemoveDownload = (movie: Movie) => {
         setDownloadedMovies(prev => prev.filter(m => m.id !== movie.id));
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            const videoUrl = movie.videoUrl_1080p;
-            if(videoUrl) navigator.serviceWorker.controller.postMessage({ type: 'DELETE_VIDEO', url: videoUrl });
+            let videoUrlToDelete: string | undefined;
+            const quality = movie.downloadQuality;
+
+            switch (quality) {
+                case 'Good':
+                    videoUrlToDelete = movie.videoUrl_480p;
+                    break;
+                case 'Best':
+                    videoUrlToDelete = movie.videoUrl_1080p;
+                    break;
+                case 'Better':
+                default:
+                    videoUrlToDelete = movie.videoUrl_720p;
+                    break;
+            }
+
+            if (videoUrlToDelete) {
+                navigator.serviceWorker.controller.postMessage({ type: 'DELETE_VIDEO', url: videoUrlToDelete });
+            }
         }
     };
 
@@ -346,7 +380,11 @@ const App: React.FC = () => {
 
         switch (view) {
             case 'movieDetails': return selectedMovie && <MovieDetails movie={selectedMovie} onBack={handleBack} onDownload={handleDownload} downloadedMovies={downloadedMovies} onPlay={() => changeView('videoPlayer')} isFavorite={favoriteMovieIds.includes(selectedMovie.id)} onToggleFavorite={handleToggleFavorite} />;
-            case 'videoPlayer': return selectedMovie && <VideoPlayer movie={selectedMovie} onClose={handleBack} onNextEpisode={() => { /* logic for next episode */ }} />;
+            case 'videoPlayer': {
+                 if (!selectedMovie) return null;
+                const downloadedVersion = downloadedMovies.find(m => m.id === selectedMovie.id);
+                return <VideoPlayer movie={selectedMovie} onClose={handleBack} onNextEpisode={() => { /* logic for next episode */ }} downloadedQuality={downloadedVersion?.downloadQuality} />;
+            }
             case 'settings':
                 if (activeSetting) {
                     switch (activeSetting) {

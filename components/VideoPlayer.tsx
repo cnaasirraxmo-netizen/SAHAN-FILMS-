@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Movie } from '../types';
+import { Movie, DownloadQuality } from '../types';
 import {
   ChevronLeftIcon, PlayIcon, PauseIcon, Replay10Icon, Forward10Icon,
   SubtitlesIcon, SettingsIcon, PictureInPictureIcon, FullscreenEnterIcon, FullscreenExitIcon,
@@ -11,6 +12,7 @@ interface VideoPlayerProps {
   movie: Movie;
   onClose: () => void;
   onNextEpisode: () => void;
+  downloadedQuality?: DownloadQuality;
 }
 
 const vttContent = `WEBVTT
@@ -39,7 +41,16 @@ const formatTime = (timeInSeconds: number) => {
   return timeString.startsWith('00:') ? timeString.substr(3) : timeString;
 };
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode }) => {
+const mapQualityToVideoQuality = (quality?: DownloadQuality): VideoQuality => {
+    switch(quality) {
+        case 'Good': return '480p';
+        case 'Best': return '1080p';
+        case 'Better':
+        default: return '720p';
+    }
+};
+
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode, downloadedQuality }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -53,7 +64,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ movie, onClose, onNextEpisode
   const [activeMenu, setActiveMenu] = useState<'quality' | 'speed' | 'subtitles' | 'audio' | null>(null);
   
   const [activeSubtitleTrack, setActiveSubtitleTrack] = useState<'off' | 'en'>('off');
-  const [videoQuality, setVideoQuality] = useState<VideoQuality>('720p');
+  const [videoQuality, setVideoQuality] = useState<VideoQuality>(mapQualityToVideoQuality(downloadedQuality));
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('contain');
 
